@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-28838d1f-13a0-466e-9eb0-044adeb1d6c3/styles.css">
+<script src="_ds/industry-28838d1f-13a0-466e-9eb0-044adeb1d6c3/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0}
+a{color:var(--color-accent)}
+a:hover{color:var(--color-accent-700)}
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+
+<div style="position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;padding:10px 22px;background:var(--color-neutral-100);border-bottom:1px solid var(--color-divider);flex-wrap:wrap">
+  <img src="assets/rotortech-logo.png" alt="Rotortech" style="height:20px;display:block" />
+  <span style="font-family:var(--font-heading);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.5">Travel Expense Settlement — Prototype</span>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+    <span style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.5">Preview as</span>
+    <div class="seg" role="radiogroup" aria-label="Preview role">
+      <label class="seg-opt"><input type="radio" name="role-preview" checked="{{ roleIsEmployee }}" onChange="{{ onRoleEmployee }}" />Employee</label>
+      <label class="seg-opt"><input type="radio" name="role-preview" checked="{{ roleIsApprover }}" onChange="{{ onRoleApprover }}" />Dept Head</label>
+      <label class="seg-opt"><input type="radio" name="role-preview" checked="{{ roleIsAccounts }}" onChange="{{ onRoleAccounts }}" />Accounts</label>
+      <label class="seg-opt"><input type="radio" name="role-preview" checked="{{ roleIsAdmin }}" onChange="{{ onRoleAdmin }}" />Admin</label>
+    </div>
+  </div>
+</div>
+
+<sc-if value="{{ roleIsEmployee }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;justify-content:center;padding:44px 20px 70px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+
+<sc-if value="{{ empIsDashboard }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+  <div style="padding:58px 20px 6px;display:flex;align-items:baseline;justify-content:space-between">
+    <h2 style="margin:0;font-size:24px">My TES</h2>
+    <button type="button" class="btn btn-primary btn-icon blueprint" aria-label="New TES" onClick="{{ startNewTES }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button>
+  </div>
+  <div style="padding:8px 20px 24px;display:flex;flex-direction:column;gap:12px">
+    <sc-for list="{{ myTES }}" as="t" hint-placeholder-count="3">
+      <div class="card blueprint" style="cursor:pointer" onClick="{{ t.onOpen }}">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.5">{{ t.tesNo }}</span>
+          <span class="tag {{ t.tagClass }}">{{ t.stageLabel }}</span>
+        </div>
+        <div class="card-title">{{ t.purpose }}</div>
+        <div class="card-meta" style="justify-content:space-between;font-size:12px">
+          <span>{{ t.period }}</span>
+          <span style="font-weight:600;color:var(--color-text);opacity:.9">{{ t.total }}</span>
+        </div>
+        <sc-if value="{{ t.rejected }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:4px;font-size:12px;color:var(--color-accent-700)">Changes requested: {{ t.comment }}</div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ empIsInfo }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+  <div style="padding:58px 20px 10px;display:flex;align-items:center;gap:8px">
+    <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ backToDashboard }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+    <h3 style="margin:0;font-size:19px">Trip Details</h3>
+  </div>
+  <div style="padding:6px 20px 100px;display:flex;flex-direction:column;gap:14px">
+    <div class="field"><label>Name</label><input class="input" value="{{ activeRecord.employeeName }}" disabled /></div>
+    <div class="field"><label>Employee ID</label><input class="input" value="{{ activeRecord.employeeId }}" disabled /></div>
+    <div class="field"><label>Project Code</label><input class="input" value="{{ activeRecord.projectCode }}" onChange="{{ onProjectCodeChange }}" placeholder="e.g. PRJ-WF-14" /></div>
+    <div class="field"><label>Purpose</label><textarea class="input" rows="2" value="{{ activeRecord.purpose }}" onChange="{{ onPurposeChange }}" placeholder="Reason for travel"></textarea></div>
+    <div class="field"><label>Location</label><input class="input" value="{{ activeRecord.location }}" onChange="{{ onLocationChange }}" placeholder="City, State" /></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>TES Start Date</label><input class="input" type="date" value="{{ activeRecord.startDate }}" onChange="{{ onStartDateChange }}" /></div>
+      <div class="field"><label>TES End Date</label><input class="input" type="date" value="{{ activeRecord.endDate }}" onChange="{{ onEndDateChange }}" /></div>
+    </div>
+    <div class="field"><label>Advance Amount (₹)</label><input class="input" type="number" value="{{ activeRecord.advanceAmount }}" onChange="{{ onAdvanceChange }}" placeholder="0" /></div>
+    <button type="button" class="btn btn-primary btn-block blueprint" onClick="{{ goInfoContinue }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Continue</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ empIsExpenses }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+  <div style="padding:58px 20px 0;display:flex;align-items:center;gap:8px">
+    <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ backToDashboard }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+    <h3 style="margin:0;font-size:18px;flex:1">{{ activeRecord.tesNo }}</h3>
+    <button type="button" class="btn btn-ghost" onClick="{{ editInfoFromExpenses }}">Edit</button>
+  </div>
+  <div style="padding:0 20px 4px">
+    <div style="font-size:13px;opacity:.75">{{ activeRecord.purpose }}</div>
+    <div style="font-size:12px;opacity:.55;margin-top:2px">{{ activeRecord.location }} · {{ activeRecord.periodFmt }}</div>
+  </div>
+  <sc-if value="{{ activeRecord.rejected }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:12px 20px 0;padding:10px 12px;border:1px solid var(--color-accent);font-size:12px">Changes requested: {{ activeRecord.approverComment }}</div>
+  </sc-if>
+  <div style="padding:14px 20px 6px;display:flex;flex-wrap:wrap;gap:6px">
+    <sc-for list="{{ activeRecord.catTotals }}" as="c" hint-placeholder-count="5">
+      <span class="tag tag-neutral">{{ c.label }} · {{ c.amountFmt }}</span>
+    </sc-for>
+  </div>
+  <div style="padding:8px 20px 16px;display:flex;flex-direction:column;gap:10px">
+    <sc-if value="{{ activeRecord.noExpenses }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:13px;opacity:.55;padding:20px 0;text-align:center">No expenses added yet.</div>
+    </sc-if>
+    <sc-for list="{{ activeRecord.expenses }}" as="ex" hint-placeholder-count="2">
+      <div class="card blueprint" style="padding:10px 12px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="tag tag-accent">{{ ex.category }}</span>
+          <span style="font-size:11px;opacity:.5">{{ ex.dateFmt }}</span>
+        </div>
+        <div style="font-size:14px;margin-top:4px">{{ ex.description }}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span style="font-size:11px;opacity:.5">{{ ex.billNo }}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:600">{{ ex.amountFmt }}</span>
+            <button type="button" class="btn btn-ghost btn-icon" style="width:28px;height:28px" aria-label="Remove" onClick="{{ ex.onRemove }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="margin-top:auto;background:var(--color-bg);border-top:1px solid var(--color-divider);padding:12px 20px 26px;display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600"><span>Total</span><span>{{ activeRecord.grandTotalFmt }}</span></div>
+    <button type="button" class="btn btn-secondary btn-block blueprint" onClick="{{ addExpenseOpen }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>+ Add Expense</button>
+    <button type="button" class="btn btn-primary btn-block blueprint" disabled="{{ activeRecord.noExpenses }}" onClick="{{ goReview }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Review & Submit</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ empIsAddExpense }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+  <div style="padding:58px 20px 10px;display:flex;align-items:center;gap:8px">
+    <button type="button" class="btn btn-ghost btn-icon" aria-label="Cancel" onClick="{{ addExpenseCancel }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+    <h3 style="margin:0;font-size:19px">Add Expense</h3>
+  </div>
+  <div style="padding:6px 20px 100px;display:flex;flex-direction:column;gap:14px">
+    <div class="field"><label>Category</label>
+      <select class="input" value="{{ draftExpense.category }}" onChange="{{ onExpenseCategoryChange }}">
+        <option value="Travel Fare">Travel Fare</option>
+        <option value="Lodging">Lodging</option>
+        <option value="Boarding">Boarding</option>
+        <option value="Conveyance">Conveyance</option>
+        <option value="Other Expenses">Other Expenses</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Date</label><input class="input" type="date" value="{{ draftExpense.date }}" onChange="{{ onExpenseDateChange }}" /></div>
+      <div class="field"><label>Amount (₹)</label><input class="input" type="number" value="{{ draftExpense.amount }}" onChange="{{ onExpenseAmountChange }}" placeholder="0" /></div>
+    </div>
+    <div class="field"><label>Description</label><input class="input" value="{{ draftExpense.description }}" onChange="{{ onExpenseDescriptionChange }}" placeholder="e.g. Ahmedabad to Bhuj cab" /></div>
+    <div class="field"><label>Bill / Ticket No</label><input class="input" value="{{ draftExpense.billNo }}" onChange="{{ onExpenseBillNoChange }}" placeholder="Optional" /></div>
+    <div class="field"><label>Receipt</label><image-slot id="{{ draftExpense.receiptId }}" placeholder="Tap to add receipt photo" shape="rounded" radius="8" style="width:100%;height:130px"></image-slot></div>
+    <div class="field"><label>Remarks</label><textarea class="input" rows="2" value="{{ draftExpense.remarks }}" onChange="{{ onExpenseRemarksChange }}" placeholder="Optional"></textarea></div>
+    <button type="button" class="btn btn-primary btn-block blueprint" disabled="{{ draftExpenseInvalid }}" onClick="{{ saveExpense }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Save Expense</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ empIsReview }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+  <div style="padding:58px 20px 10px;display:flex;align-items:center;gap:8px">
+    <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ backToExpenses }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+    <h3 style="margin:0;font-size:19px">Review & Submit</h3>
+  </div>
+  <div style="padding:6px 20px 40px;display:flex;flex-direction:column;gap:14px">
+    <div class="card blueprint" style="padding:12px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+        <div><span style="opacity:.5">Employee</span><br />{{ activeRecord.employeeName }}</div>
+        <div><span style="opacity:.5">Employee ID</span><br />{{ activeRecord.employeeId }}</div>
+        <div><span style="opacity:.5">Project Code</span><br />{{ activeRecord.projectCode }}</div>
+        <div><span style="opacity:.5">Advance</span><br />{{ activeRecord.advanceAmountFmt }}</div>
+        <div style="grid-column:1/-1"><span style="opacity:.5">Location & Period</span><br />{{ activeRecord.location }} · {{ activeRecord.periodFmt }}</div>
+        <div style="grid-column:1/-1"><span style="opacity:.5">Purpose</span><br />{{ activeRecord.purpose }}</div>
+      </div>
+    </div>
+    <table class="table" style="font-size:13px">
+      <thead><tr><th>Category</th><th>Date</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead>
+      <tbody>
+        <sc-for list="{{ activeRecord.expenses }}" as="ex" hint-placeholder-count="2">
+          <tr><td>{{ ex.category }}</td><td class="text-muted">{{ ex.dateFmt }}</td><td>{{ ex.description }}</td><td style="text-align:right">{{ ex.amountFmt }}</td></tr>
+        </sc-for>
+        <tr><td colspan="3" style="font-weight:600">Total</td><td style="text-align:right;font-weight:600">{{ activeRecord.grandTotalFmt }}</td></tr>
+      </tbody>
+    </table>
+    <p class="text-muted" style="font-size:12px">Submitting saves a PDF summary to the shared Rotortech Google Drive folder and sends this TES to your Department Head for approval.</p>
+    <button type="button" class="btn btn-primary btn-block blueprint" onClick="{{ submitRecord }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Submit for Approval</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ empIsStatus }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+  <div style="padding:58px 20px 10px;display:flex;align-items:center;gap:8px">
+    <button type="button" class="btn btn-ghost btn-icon" aria-label="Back" onClick="{{ backToDashboard }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+    <h3 style="margin:0;font-size:19px">{{ activeRecord.tesNo }}</h3>
+  </div>
+  <div style="padding:0 20px 10px">
+    <div style="font-size:13px;opacity:.75">{{ activeRecord.purpose }}</div>
+    <div style="font-size:12px;opacity:.55;margin-top:2px">{{ activeRecord.periodFmt }} · {{ activeRecord.grandTotalFmt }}</div>
+  </div>
+  <div style="padding:16px 20px 6px;display:flex;flex-direction:column;gap:16px">
+    <sc-for list="{{ activeRecord.steps }}" as="st" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:22px;height:22px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--color-divider);background:transparent">
+          <sc-if value="{{ st.done }}" hint-placeholder-val="{{ false }}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+          </sc-if>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:14px">{{ st.label }}</div>
+          <div style="font-size:11px;opacity:.5">{{ st.dateFmt }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <sc-if value="{{ activeRecord.settled }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:8px 20px 0;padding:12px" class="card blueprint">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="card-kicker">Settlement</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-top:4px">
+        <div><span style="opacity:.5">Advance</span><br />{{ activeRecord.advanceAmountFmt }}</div>
+        <div><span style="opacity:.5">Expense Approved</span><br />{{ activeRecord.expenseApprovedFmt }}</div>
+        <div><span style="opacity:.5">Balance to Employee</span><br />{{ activeRecord.balanceEmployeeFmt }}</div>
+        <div><span style="opacity:.5">Balance to Company</span><br />{{ activeRecord.balanceCompanyFmt }}</div>
+      </div>
+    </div>
+  </sc-if>
+  <div style="padding:20px 20px 90px;margin-top:auto">
+    <button type="button" class="btn btn-secondary btn-block blueprint" onClick="{{ backToDashboard }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Back to My TES</button>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</div>
+</sc-if>
+
+<sc-if value="{{ roleIsApprover }}" hint-placeholder-val="{{ false }}">
+<div style="max-width:1080px;margin:0 auto;padding:0 24px 80px">
+  <nav class="nav">
+    <img src="assets/rotortech-logo.png" alt="Rotortech" style="height:20px;margin-right:auto" />
+    <span style="font-size:13px;opacity:.6">Vikram Shah · Department Head</span>
+  </nav>
+
+  <sc-if value="{{ approverIsQueue }}" hint-placeholder-val="{{ true }}">
+  <div style="padding:28px 0 0">
+    <h2 style="margin:0 0 4px">Pending Approvals</h2>
+    <p class="text-muted" style="margin:0 0 20px;font-size:14px">{{ approverQueueCountLabel }}</p>
+    <table class="table">
+      <thead><tr><th>Employee</th><th>TES No</th><th>Purpose</th><th>Period</th><th style="text-align:right">Amount</th><th>Submitted</th><th></th></tr></thead>
+      <tbody>
+        <sc-for list="{{ approverQueue }}" as="q" hint-placeholder-count="2">
+          <tr>
+            <td>{{ q.employeeName }}</td><td>{{ q.tesNo }}</td><td>{{ q.purpose }}</td><td class="text-muted">{{ q.period }}</td>
+            <td style="text-align:right">{{ q.amount }}</td><td class="text-muted">{{ q.submittedDate }}</td>
+            <td><button type="button" class="btn btn-secondary blueprint" onClick="{{ q.onOpen }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Review</button></td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <sc-if value="{{ approverQueueEmpty }}" hint-placeholder-val="{{ false }}">
+      <p class="text-muted" style="padding:24px 0">All caught up — no pending approvals.</p>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ approverIsDetail }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:28px 0 0">
+    <button type="button" class="btn btn-ghost" onClick="{{ backToApproverQueue }}">← Back to queue</button>
+    <div style="display:flex;align-items:baseline;gap:12px;margin:12px 0 4px">
+      <h2 style="margin:0">{{ approverActive.tesNo }}</h2>
+      <span class="tag {{ approverActive.stageTagClass }}">{{ approverActive.stageLabel }}</span>
+    </div>
+    <p class="text-muted" style="margin:0 0 20px">{{ approverActive.purpose }}</p>
+    <div class="card blueprint" style="padding:16px;margin-bottom:20px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;font-size:13px">
+        <div><span style="opacity:.5">Employee</span><br />{{ approverActive.employeeName }}</div>
+        <div><span style="opacity:.5">Employee ID</span><br />{{ approverActive.employeeId }}</div>
+        <div><span style="opacity:.5">Project Code</span><br />{{ approverActive.projectCode }}</div>
+        <div><span style="opacity:.5">Location</span><br />{{ approverActive.location }}</div>
+        <div><span style="opacity:.5">Period</span><br />{{ approverActive.periodFmt }}</div>
+        <div><span style="opacity:.5">Advance</span><br />{{ approverActive.advanceAmountFmt }}</div>
+      </div>
+    </div>
+    <table class="table">
+      <thead><tr><th>Receipt</th><th>Category</th><th>Date</th><th>Description</th><th>Bill No</th><th style="text-align:right">Amount</th></tr></thead>
+      <tbody>
+        <sc-for list="{{ approverActive.expenses }}" as="ex" hint-placeholder-count="3">
+          <tr>
+            <td><image-slot id="{{ ex.receiptId }}" placeholder="Receipt" shape="rounded" radius="6" style="width:76px;height:76px"></image-slot></td>
+            <td>{{ ex.category }}</td><td class="text-muted">{{ ex.dateFmt }}</td><td>{{ ex.description }}</td><td class="text-muted">{{ ex.billNo }}</td>
+            <td style="text-align:right">{{ ex.amountFmt }}</td>
+          </tr>
+        </sc-for>
+        <tr><td colspan="5" style="font-weight:600">Total</td><td style="text-align:right;font-weight:600">{{ approverActive.grandTotalFmt }}</td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button type="button" class="btn btn-secondary blueprint" onClick="{{ openReject }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Reject</button>
+      <button type="button" class="btn btn-primary blueprint" onClick="{{ approveActive }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Approve</button>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ roleIsAccounts }}" hint-placeholder-val="{{ false }}">
+<div style="max-width:1080px;margin:0 auto;padding:0 24px 80px">
+  <nav class="nav">
+    <img src="assets/rotortech-logo.png" alt="Rotortech" style="height:20px;margin-right:auto" />
+    <span style="font-size:13px;opacity:.6">Meera Joshi · Accounts Team</span>
+  </nav>
+
+  <sc-if value="{{ accountsIsQueue }}" hint-placeholder-val="{{ true }}">
+  <div style="padding:28px 0 0">
+    <h2 style="margin:0 0 4px">Approved — Pending Accounts Entry</h2>
+    <p class="text-muted" style="margin:0 0 20px;font-size:14px">{{ accountsQueueCountLabel }}</p>
+    <table class="table">
+      <thead><tr><th>Employee</th><th>TES No</th><th>Purpose</th><th>Approved</th><th style="text-align:right">Claimed</th><th></th></tr></thead>
+      <tbody>
+        <sc-for list="{{ accountsQueue }}" as="a" hint-placeholder-count="1">
+          <tr>
+            <td>{{ a.employeeName }}</td><td>{{ a.tesNo }}</td><td>{{ a.purpose }}</td><td class="text-muted">{{ a.approvedDate }}</td>
+            <td style="text-align:right">{{ a.amount }}</td>
+            <td><button type="button" class="btn btn-secondary blueprint" onClick="{{ a.onOpen }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Process</button></td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <sc-if value="{{ accountsQueueEmpty }}" hint-placeholder-val="{{ false }}">
+      <p class="text-muted" style="padding:24px 0">Nothing pending — all settlements are up to date.</p>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ accountsIsEntry }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:28px 0 0">
+    <button type="button" class="btn btn-ghost" onClick="{{ backToAccountsQueue }}">← Back to queue</button>
+    <h2 style="margin:12px 0 4px">{{ accountsActive.tesNo }}</h2>
+    <p class="text-muted" style="margin:0 0 20px">{{ accountsActive.employeeName }} · {{ accountsActive.purpose }}</p>
+    <table class="table">
+      <thead><tr><th>Category</th><th>Date</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead>
+      <tbody>
+        <sc-for list="{{ accountsActive.expenses }}" as="ex" hint-placeholder-count="3">
+          <tr><td>{{ ex.category }}</td><td class="text-muted">{{ ex.dateFmt }}</td><td>{{ ex.description }}</td><td style="text-align:right">{{ ex.amountFmt }}</td></tr>
+        </sc-for>
+        <tr><td colspan="3" style="font-weight:600">Total Claimed</td><td style="text-align:right;font-weight:600">{{ accountsActive.grandTotalFmt }}</td></tr>
+      </tbody>
+    </table>
+    <div class="card blueprint" style="padding:16px;margin-top:20px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="card-kicker">Settlement</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px">
+        <div class="field"><label>Advance Paid</label><input class="input" value="{{ accountsActive.advanceAmountFmt }}" disabled /></div>
+        <div class="field"><label>Advance Date</label><input class="input" type="date" value="{{ accountsFormAdvanceDate }}" onChange="{{ onAccountsAdvanceDateChange }}" /></div>
+        <div class="field"><label>Expense Approved (₹)</label><input class="input" type="number" value="{{ accountsFormExpenseApproved }}" onChange="{{ onAccountsApprovedChange }}" /></div>
+        <div class="field"><label>Accounts Entry Date</label><input class="input" value="Set on finalize" disabled /></div>
+      </div>
+      <div style="display:flex;gap:24px;margin-top:12px;font-size:14px">
+        <div><span style="opacity:.5">Balance due to Employee</span><br /><strong>{{ accountsLiveBalanceEmployee }}</strong></div>
+        <div><span style="opacity:.5">Balance due to Company</span><br /><strong>{{ accountsLiveBalanceCompany }}</strong></div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary btn-block blueprint" style="margin-top:20px;max-width:320px" onClick="{{ finalizeAccounts }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Finalize & Save to Drive</button>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ roleIsAdmin }}" hint-placeholder-val="{{ false }}">
+<div style="max-width:1080px;margin:0 auto;padding:0 24px 80px">
+  <nav class="nav">
+    <img src="assets/rotortech-logo.png" alt="Rotortech" style="height:20px;margin-right:auto" />
+    <span style="font-size:13px;opacity:.6">IT & HR Admin</span>
+  </nav>
+  <div style="padding:28px 0 0">
+    <h2 style="margin:0 0 20px">Admin</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+      <div class="card blueprint" style="padding:16px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="card-kicker">Google Drive</div>
+        <div class="card-title" style="font-size:15px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent);display:inline-block"></span>Connected</div>
+        <p class="card-body">Rotortech Energy Solutions — Shared Drive<br /><span style="font-family:ui-monospace,monospace;font-size:11px">/Travel Expense Settlements/{year}/{employee}/</span></p>
+        <button type="button" class="btn btn-secondary blueprint" style="align-self:flex-start"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Manage folder</button>
+      </div>
+      <div class="card blueprint" style="padding:16px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="card-kicker">Expense Categories</div>
+        <div class="card-title" style="font-size:15px">5 active</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+          <span class="tag tag-outline">Travel Fare</span><span class="tag tag-outline">Lodging</span><span class="tag tag-outline">Boarding</span><span class="tag tag-outline">Conveyance</span><span class="tag tag-outline">Other Expenses</span>
+        </div>
+      </div>
+    </div>
+    <p class="text-muted" style="font-size:13px;margin-bottom:20px">Approval chain: Employee → Department Head → Accounts → Settled</p>
+    <table class="table">
+      <thead><tr><th>Name</th><th>Employee ID</th><th>Department</th><th>Role</th><th>Status</th></tr></thead>
+      <tbody>
+        <sc-for list="{{ adminUsers }}" as="u" hint-placeholder-count="6">
+          <tr><td>{{ u.name }}</td><td>{{ u.id }}</td><td>{{ u.dept }}</td><td>{{ u.role }}</td><td><span class="tag tag-accent">{{ u.status }}</span></td></tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rejectOpen }}" hint-placeholder-val="{{ false }}">
+  <div class="dialog-backdrop" style="z-index:210">
+    <div class="dialog blueprint elev-lg">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="dialog-title">Send {{ approverActive.tesNo }} back to employee?</div>
+      <div class="dialog-body">
+        <div class="field"><label>What needs to change?</label><textarea class="input" rows="3" value="{{ rejectComment }}" onChange="{{ onRejectCommentChange }}" placeholder="e.g. Attach the hotel bill for Aug 10"></textarea></div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary blueprint" onClick="{{ closeReject }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Cancel</button>
+        <button type="button" class="btn btn-primary blueprint" onClick="{{ confirmReject }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Send back</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
+  <div class="dialog-backdrop" style="z-index:220">
+    <div class="dialog blueprint elev-lg">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="dialog-title">{{ toastTitle }}</div>
+      <div class="dialog-body">{{ toastMessage }}<br /><span class="text-muted" style="font-size:12px;font-family:ui-monospace,monospace">{{ toastPath }}</span></div>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-primary blueprint" onClick="{{ closeToast }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Done</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SELF = { name: 'Anil Kumar', id: 'RES-0142' };
+const CATS = ['Travel Fare', 'Lodging', 'Boarding', 'Conveyance', 'Other Expenses'];
+const EMPTY_VIEW = {
+  employeeName: '', employeeId: '', projectCode: '', purpose: '', location: '',
+  startDate: '', endDate: '', advanceAmount: 0, advanceAmountFmt: '₹0', periodFmt: '—',
+  tesNo: '', rejected: false, approverComment: '', catTotals: [], noExpenses: true,
+  expenses: [], grandTotalFmt: '₹0', steps: [], settled: false,
+  expenseApprovedFmt: '—', balanceEmployeeFmt: '—', balanceCompanyFmt: '—',
+  stage: 'draft', stageLabel: 'Draft', stageTagClass: 'tag-neutral'
+};
+
+function seedRecords() {
+  return [
+    { id: 'r1', tesNo: 'TES-2026-0142', employeeName: 'Anil Kumar', employeeId: 'RES-0142', projectCode: 'PRJ-WF-14',
+      purpose: 'Site visit — blade inspection, Kutch Wind Farm', location: 'Kutch, Gujarat',
+      startDate: '2026-08-10', endDate: '2026-08-13', advanceAmount: 5000,
+      submittedDate: null, receivedDate: null, approvedDate: null, accountsEntryDate: null,
+      advanceDate: null, expenseApproved: null, balanceEmployee: null, balanceCompany: null,
+      rejected: false, approverComment: '',
+      expenses: [
+        { id: 'e1', category: 'Travel Fare', date: '2026-08-10', description: 'Ahmedabad → Bhuj cab', amount: 1850, billNo: 'TF-3312', remarks: '', receiptId: 'receipt-e1' },
+        { id: 'e2', category: 'Lodging', date: '2026-08-10', description: 'Hotel Kutch Residency, Bhuj', amount: 2400, billNo: 'HK-9081', remarks: '2 nights', receiptId: 'receipt-e2' }
+      ] },
+    { id: 'r2', tesNo: 'TES-2026-0139', employeeName: 'Anil Kumar', employeeId: 'RES-0142', projectCode: 'PRJ-WF-09',
+      purpose: 'Client site audit, Jamnagar', location: 'Jamnagar, Gujarat',
+      startDate: '2026-08-05', endDate: '2026-08-06', advanceAmount: 5000,
+      submittedDate: '2026-08-14', receivedDate: '2026-08-14', approvedDate: null, accountsEntryDate: null,
+      advanceDate: null, expenseApproved: null, balanceEmployee: null, balanceCompany: null,
+      rejected: false, approverComment: '',
+      expenses: [
+        { id: 'e3', category: 'Travel Fare', date: '2026-08-05', description: 'Rajkot → Jamnagar train', amount: 620, billNo: 'TK-5502', remarks: '', receiptId: 'receipt-e3' },
+        { id: 'e4', category: 'Lodging', date: '2026-08-05', description: 'Hotel Aram, Jamnagar', amount: 3200, billNo: 'HA-1147', remarks: '1 night', receiptId: 'receipt-e4' },
+        { id: 'e5', category: 'Boarding', date: '2026-08-05', description: 'Meals', amount: 480, billNo: '', remarks: '', receiptId: 'receipt-e5' },
+        { id: 'e6', category: 'Conveyance', date: '2026-08-06', description: 'Local auto to site', amount: 200, billNo: '', remarks: '', receiptId: 'receipt-e6' },
+        { id: 'e7', category: 'Other Expenses', date: '2026-08-06', description: 'Site safety gear rental', amount: 1800, billNo: 'SG-771', remarks: '', receiptId: 'receipt-e7' }
+      ] },
+    { id: 'r3', tesNo: 'TES-2026-0135', employeeName: 'Anil Kumar', employeeId: 'RES-0142', projectCode: 'PRJ-WF-06',
+      purpose: 'Vendor coordination, Bhuj', location: 'Bhuj, Gujarat',
+      startDate: '2026-07-19', endDate: '2026-07-21', advanceAmount: 4000,
+      submittedDate: '2026-07-20', receivedDate: '2026-07-20', approvedDate: '2026-07-23', accountsEntryDate: '2026-07-26',
+      advanceDate: '2026-07-18', expenseApproved: 5650, balanceEmployee: 1650, balanceCompany: 0,
+      rejected: false, approverComment: '',
+      expenses: [
+        { id: 'e8', category: 'Travel Fare', date: '2026-07-19', description: 'Ahmedabad → Bhuj flight', amount: 3200, billNo: 'AF-2231', remarks: '', receiptId: 'receipt-e8' },
+        { id: 'e9', category: 'Lodging', date: '2026-07-19', description: 'Hotel Prince, Bhuj', amount: 1800, billNo: 'HP-661', remarks: '2 nights', receiptId: 'receipt-e9' },
+        { id: 'e10', category: 'Boarding', date: '2026-07-20', description: 'Meals', amount: 650, billNo: '', remarks: '', receiptId: 'receipt-e10' }
+      ] },
+    { id: 'r4', tesNo: 'TES-2026-0141', employeeName: 'Priya Nair', employeeId: 'RES-0187', projectCode: 'PRJ-OM-22',
+      purpose: 'O&M review — Dwarka', location: 'Dwarka, Gujarat',
+      startDate: '2026-08-12', endDate: '2026-08-15', advanceAmount: 6000,
+      submittedDate: '2026-08-15', receivedDate: '2026-08-15', approvedDate: null, accountsEntryDate: null,
+      advanceDate: null, expenseApproved: null, balanceEmployee: null, balanceCompany: null,
+      rejected: false, approverComment: '',
+      expenses: [
+        { id: 'e11', category: 'Travel Fare', date: '2026-08-12', description: 'Rajkot → Dwarka cab', amount: 2200, billNo: 'TF-8821', remarks: '', receiptId: 'receipt-e11' },
+        { id: 'e12', category: 'Lodging', date: '2026-08-12', description: 'Hotel Dwarka Inn', amount: 3600, billNo: 'HD-330', remarks: '3 nights', receiptId: 'receipt-e12' },
+        { id: 'e13', category: 'Conveyance', date: '2026-08-14', description: 'Site shuttle', amount: 420, billNo: '', remarks: '', receiptId: 'receipt-e13' },
+        { id: 'e14', category: 'Other Expenses', date: '2026-08-14', description: 'PPE kit purchase', amount: 1200, billNo: 'PPE-55', remarks: '', receiptId: 'receipt-e14' }
+      ] },
+    { id: 'r5', tesNo: 'TES-2026-0140', employeeName: 'Suresh Babu', employeeId: 'RES-0203', projectCode: 'PRJ-WF-14',
+      purpose: 'Turbine commissioning support — Rajkot', location: 'Rajkot, Gujarat',
+      startDate: '2026-08-10', endDate: '2026-08-14', advanceAmount: 7000,
+      submittedDate: '2026-08-14', receivedDate: '2026-08-14', approvedDate: null, accountsEntryDate: null,
+      advanceDate: null, expenseApproved: null, balanceEmployee: null, balanceCompany: null,
+      rejected: false, approverComment: '',
+      expenses: [
+        { id: 'e15', category: 'Travel Fare', date: '2026-08-10', description: 'Ahmedabad → Rajkot bus', amount: 900, billNo: 'BT-221', remarks: '', receiptId: 'receipt-e15' },
+        { id: 'e16', category: 'Lodging', date: '2026-08-10', description: 'Hotel Regency, Rajkot', amount: 5200, billNo: 'HR-1180', remarks: '4 nights', receiptId: 'receipt-e16' },
+        { id: 'e17', category: 'Boarding', date: '2026-08-11', description: 'Meals', amount: 1100, billNo: '', remarks: '', receiptId: 'receipt-e17' },
+        { id: 'e18', category: 'Conveyance', date: '2026-08-12', description: 'Site-to-site travel', amount: 650, billNo: '', remarks: '', receiptId: 'receipt-e18' },
+        { id: 'e19', category: 'Other Expenses', date: '2026-08-13', description: 'Tool calibration fee', amount: 1300, billNo: 'TC-90', remarks: '', receiptId: 'receipt-e19' }
+      ] },
+    { id: 'r6', tesNo: 'TES-2026-0136', employeeName: 'Priya Nair', employeeId: 'RES-0187', projectCode: 'PRJ-LG-11',
+      purpose: 'Spare parts logistics — Porbandar', location: 'Porbandar, Gujarat',
+      startDate: '2026-08-01', endDate: '2026-08-03', advanceAmount: 4500,
+      submittedDate: '2026-08-04', receivedDate: '2026-08-04', approvedDate: '2026-08-05', accountsEntryDate: null,
+      advanceDate: null, expenseApproved: null, balanceEmployee: null, balanceCompany: null,
+      rejected: false, approverComment: '',
+      expenses: [
+        { id: 'e20', category: 'Travel Fare', date: '2026-08-01', description: 'Rajkot → Porbandar cab', amount: 1600, billNo: 'TF-441', remarks: '', receiptId: 'receipt-e20' },
+        { id: 'e21', category: 'Lodging', date: '2026-08-01', description: 'Hotel Sea View', amount: 2800, billNo: 'SV-99', remarks: '2 nights', receiptId: 'receipt-e21' },
+        { id: 'e22', category: 'Boarding', date: '2026-08-02', description: 'Meals', amount: 780, billNo: '', remarks: '', receiptId: 'receipt-e22' },
+        { id: 'e23', category: 'Other Expenses', date: '2026-08-02', description: 'Packaging materials', amount: 800, billNo: 'PM-12', remarks: '', receiptId: 'receipt-e23' }
+      ] }
+  ];
+}
+
+class Component extends DCLogic {
+  state = {
+    role: 'employee',
+    empScreen: 'dashboard',
+    activeId: null,
+    draftExpense: null,
+    approverScreen: 'queue',
+    approverActiveId: null,
+    rejectOpen: false,
+    rejectComment: '',
+    accountsScreen: 'queue',
+    accountsActiveId: null,
+    accountsForm: null,
+    toast: null,
+    nextNo: 143,
+    records: seedRecords()
+  };
+
+  today() { return new Date().toISOString().slice(0, 10); }
+
+  fmtMoney(n) { return '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN'); }
+
+  fmtDate(iso) {
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  fmtPeriod(s, e) {
+    if (!s && !e) return '—';
+    if (s && !e) return this.fmtDate(s);
+    return this.fmtDate(s) + ' – ' + this.fmtDate(e);
+  }
+
+  totalOf(expenses) { return expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0); }
+
+  categoryTotals(expenses) {
+    return CATS.map(c => ({
+      label: c,
+      amountFmt: this.fmtMoney(expenses.filter(e => e.category === c).reduce((s, e) => s + (Number(e.amount) || 0), 0))
+    }));
+  }
+
+  getStage(r) {
+    if (r.accountsEntryDate) return 'accounts_entry';
+    if (r.approvedDate) return 'approved';
+    if (r.submittedDate) return 'submitted';
+    return 'draft';
+  }
+
+  stageLabel(stage) {
+    return { draft: 'Draft', submitted: 'Pending Approval', approved: 'Pending Accounts', accounts_entry: 'Settled' }[stage];
+  }
+
+  stageTagClass(stage) {
+    return { draft: 'tag-neutral', submitted: 'tag-outline', approved: 'tag-outline', accounts_entry: 'tag-accent' }[stage];
+  }
+
+  buildActiveView(rec) {
+    if (!rec) return EMPTY_VIEW;
+    const expenses = rec.expenses.map(e => ({
+      ...e,
+      dateFmt: this.fmtDate(e.date),
+      amountFmt: this.fmtMoney(e.amount),
+      onRemove: () => this.removeExpense(rec.id, e.id)
+    }));
+    const grand = this.totalOf(rec.expenses);
+    const stage = this.getStage(rec);
+    const steps = [
+      { label: 'Submitted', date: rec.submittedDate },
+      { label: 'Received', date: rec.receivedDate },
+      { label: 'Approved', date: rec.approvedDate },
+      { label: 'Accounts Entry', date: rec.accountsEntryDate }
+    ].map(s => ({ label: s.label, done: !!s.date, dateFmt: s.date ? this.fmtDate(s.date) : 'Pending' }));
+    return {
+      id: rec.id, tesNo: rec.tesNo, employeeName: rec.employeeName, employeeId: rec.employeeId,
+      projectCode: rec.projectCode, purpose: rec.purpose, location: rec.location,
+      startDate: rec.startDate, endDate: rec.endDate, advanceAmount: rec.advanceAmount,
+      advanceAmountFmt: this.fmtMoney(rec.advanceAmount),
+      periodFmt: this.fmtPeriod(rec.startDate, rec.endDate),
+      expenses, grandTotalFmt: this.fmtMoney(grand), grandTotalRaw: grand,
+      noExpenses: expenses.length === 0,
+      catTotals: this.categoryTotals(rec.expenses),
+      stage, stageLabel: this.stageLabel(stage), stageTagClass: this.stageTagClass(stage),
+      steps,
+      rejected: !!rec.rejected, approverComment: rec.approverComment,
+      settled: !!rec.accountsEntryDate,
+      expenseApprovedFmt: rec.expenseApproved != null ? this.fmtMoney(rec.expenseApproved) : '—',
+      balanceEmployeeFmt: rec.balanceEmployee != null ? this.fmtMoney(rec.balanceEmployee) : '—',
+      balanceCompanyFmt: rec.balanceCompany != null ? this.fmtMoney(rec.balanceCompany) : '—'
+    };
+  }
+
+  updateActive(field, value) {
+    this.setState(s => ({ records: s.records.map(r => r.id === s.activeId ? { ...r, [field]: value } : r) }));
+  }
+  onProjectCodeChange = (e) => this.updateActive('projectCode', e.target.value);
+  onPurposeChange = (e) => this.updateActive('purpose', e.target.value);
+  onLocationChange = (e) => this.updateActive('location', e.target.value);
+  onStartDateChange = (e) => this.updateActive('startDate', e.target.value);
+  onEndDateChange = (e) => this.updateActive('endDate', e.target.value);
+  onAdvanceChange = (e) => this.updateActive('advanceAmount', e.target.value);
+
+  onRoleEmployee = () => this.setState({ role: 'employee', rejectOpen: false, approverScreen: 'queue', accountsScreen: 'queue' });
+  onRoleApprover = () => this.setState({ role: 'approver', rejectOpen: false, approverScreen: 'queue', accountsScreen: 'queue' });
+  onRoleAccounts = () => this.setState({ role: 'accounts', rejectOpen: false, approverScreen: 'queue', accountsScreen: 'queue' });
+  onRoleAdmin = () => this.setState({ role: 'admin', rejectOpen: false, approverScreen: 'queue', accountsScreen: 'queue' });
+
+  startNewTES = () => {
+    this.setState(s => {
+      const id = 'r' + Date.now();
+      const rec = {
+        id, tesNo: 'TES-2026-0' + s.nextNo, employeeName: SELF.name, employeeId: SELF.id,
+        projectCode: '', purpose: '', location: '', startDate: '', endDate: '', advanceAmount: 0,
+        submittedDate: null, receivedDate: null, approvedDate: null, accountsEntryDate: null,
+        advanceDate: null, expenseApproved: null, balanceEmployee: null, balanceCompany: null,
+        rejected: false, approverComment: '', expenses: []
+      };
+      return { records: [rec, ...s.records], activeId: id, empScreen: 'info', nextNo: s.nextNo + 1 };
+    });
+  };
+
+  openMyRecord = (id) => {
+    const rec = this.state.records.find(r => r.id === id);
+    const stage = this.getStage(rec);
+    this.setState({ activeId: id, empScreen: stage === 'draft' ? 'expenses' : 'status' });
+  };
+
+  backToDashboard = () => this.setState({ empScreen: 'dashboard', activeId: null });
+  editInfoFromExpenses = () => this.setState({ empScreen: 'info' });
+  goInfoContinue = () => this.setState({ empScreen: 'expenses' });
+  backToExpenses = () => this.setState({ empScreen: 'expenses' });
+  goReview = () => this.setState({ empScreen: 'review' });
+
+  addExpenseOpen = () => {
+    const id = 'e' + Date.now();
+    this.setState({
+      draftExpense: { id, category: 'Travel Fare', date: this.today(), description: '', amount: '', billNo: '', remarks: '', receiptId: 'receipt-' + id },
+      empScreen: 'addExpense'
+    });
+  };
+  addExpenseCancel = () => this.setState({ empScreen: 'expenses', draftExpense: null });
+
+  updateDraftExpense(field, value) {
+    this.setState(s => ({ draftExpense: { ...s.draftExpense, [field]: value } }));
+  }
+  onExpenseCategoryChange = (e) => this.updateDraftExpense('category', e.target.value);
+  onExpenseDateChange = (e) => this.updateDraftExpense('date', e.target.value);
+  onExpenseDescriptionChange = (e) => this.updateDraftExpense('description', e.target.value);
+  onExpenseAmountChange = (e) => this.updateDraftExpense('amount', e.target.value);
+  onExpenseBillNoChange = (e) => this.updateDraftExpense('billNo', e.target.value);
+  onExpenseRemarksChange = (e) => this.updateDraftExpense('remarks', e.target.value);
+
+  saveExpense = () => {
+    const { draftExpense } = this.state;
+    if (!draftExpense || !draftExpense.amount || Number(draftExpense.amount) <= 0) return;
+    this.setState(s => ({
+      records: s.records.map(r => r.id === s.activeId ? { ...r, expenses: [...r.expenses, { ...draftExpense, amount: Number(draftExpense.amount) }] } : r),
+      empScreen: 'expenses', draftExpense: null
+    }));
+  };
+
+  removeExpense(recordId, expenseId) {
+    this.setState(s => ({ records: s.records.map(r => r.id === recordId ? { ...r, expenses: r.expenses.filter(e => e.id !== expenseId) } : r) }));
+  }
+
+  submitRecord = () => {
+    this.setState(s => {
+      const rec = s.records.find(r => r.id === s.activeId);
+      const today = this.today();
+      const path = 'Rotortech Energy Solutions/Travel Expense Settlements/2026/' + rec.employeeName + '/' + rec.tesNo + '.pdf';
+      return {
+        records: s.records.map(r => r.id === s.activeId ? { ...r, submittedDate: today, receivedDate: today, rejected: false } : r),
+        empScreen: 'status',
+        toast: { title: 'Saved to Google Drive', message: rec.tesNo + ' was submitted for approval and a PDF summary was saved to Drive.', path }
+      };
+    });
+  };
+
+  closeToast = () => this.setState({ toast: null });
+
+  backToApproverQueue = () => this.setState({ approverScreen: 'queue', approverActiveId: null });
+
+  approveActive = () => {
+    this.setState(s => ({
+      records: s.records.map(r => r.id === s.approverActiveId ? { ...r, approvedDate: this.today() } : r),
+      approverScreen: 'queue', approverActiveId: null
+    }));
+  };
+  openReject = () => this.setState({ rejectOpen: true, rejectComment: '' });
+  closeReject = () => this.setState({ rejectOpen: false });
+  onRejectCommentChange = (e) => this.setState({ rejectComment: e.target.value });
+  confirmReject = () => {
+    this.setState(s => ({
+      records: s.records.map(r => r.id === s.approverActiveId ? { ...r, submittedDate: null, receivedDate: null, rejected: true, approverComment: s.rejectComment } : r),
+      rejectOpen: false, approverScreen: 'queue', approverActiveId: null
+    }));
+  };
+
+  backToAccountsQueue = () => this.setState({ accountsScreen: 'queue', accountsActiveId: null, accountsForm: null });
+
+  onAccountsAdvanceDateChange = (e) => this.setState(s => ({ accountsForm: { ...s.accountsForm, advanceDate: e.target.value } }));
+  onAccountsApprovedChange = (e) => this.setState(s => ({ accountsForm: { ...s.accountsForm, expenseApproved: e.target.value } }));
+
+  finalizeAccounts = () => {
+    this.setState(s => {
+      const rec = s.records.find(r => r.id === s.accountsActiveId);
+      const approvedAmt = Number(s.accountsForm.expenseApproved) || 0;
+      const advanceAmt = Number(rec.advanceAmount) || 0;
+      const balEmp = Math.max(approvedAmt - advanceAmt, 0);
+      const balComp = Math.max(advanceAmt - approvedAmt, 0);
+      const today = this.today();
+      const path = 'Rotortech Energy Solutions/Travel Expense Settlements/2026/' + rec.employeeName + '/' + rec.tesNo + '.pdf';
+      return {
+        records: s.records.map(r => r.id === s.accountsActiveId ? { ...r, advanceDate: s.accountsForm.advanceDate || today, expenseApproved: approvedAmt, balanceEmployee: balEmp, balanceCompany: balComp, accountsEntryDate: today } : r),
+        accountsScreen: 'queue', accountsActiveId: null, accountsForm: null,
+        toast: { title: 'Saved to Google Drive', message: rec.tesNo + ' settlement recorded and the final PDF updated in Drive.', path }
+      };
+    });
+  };
+
+  renderVals() {
+    const { role, empScreen, records, activeId, draftExpense, approverScreen, approverActiveId,
+      rejectOpen, rejectComment, accountsScreen, accountsActiveId, accountsForm, toast } = this.state;
+
+    const activeRecord = this.buildActiveView(records.find(r => r.id === activeId));
+
+    const myTES = records.filter(r => r.employeeId === SELF.id).map(r => {
+      const stage = this.getStage(r);
+      return {
+        id: r.id, tesNo: r.tesNo, purpose: r.purpose, period: this.fmtPeriod(r.startDate, r.endDate),
+        total: this.fmtMoney(this.totalOf(r.expenses)), stageLabel: this.stageLabel(stage), tagClass: this.stageTagClass(stage),
+        rejected: !!r.rejected, comment: r.approverComment, onOpen: () => this.openMyRecord(r.id)
+      };
+    });
+
+    const approverQueue = records.filter(r => r.submittedDate && !r.approvedDate).map(r => ({
+      id: r.id, employeeName: r.employeeName, tesNo: r.tesNo, purpose: r.purpose,
+      period: this.fmtPeriod(r.startDate, r.endDate), amount: this.fmtMoney(this.totalOf(r.expenses)),
+      submittedDate: this.fmtDate(r.submittedDate),
+      onOpen: () => this.setState({ approverActiveId: r.id, approverScreen: 'detail' })
+    }));
+    const approverActive = this.buildActiveView(records.find(r => r.id === approverActiveId));
+
+    const accountsQueue = records.filter(r => r.approvedDate && !r.accountsEntryDate).map(r => ({
+      id: r.id, employeeName: r.employeeName, tesNo: r.tesNo, purpose: r.purpose,
+      approvedDate: this.fmtDate(r.approvedDate), amount: this.fmtMoney(this.totalOf(r.expenses)),
+      onOpen: () => this.setState({ accountsActiveId: r.id, accountsScreen: 'entry', accountsForm: { advanceDate: '', expenseApproved: String(this.totalOf(r.expenses)) } })
+    }));
+    const accountsActiveRec = records.find(r => r.id === accountsActiveId);
+    const accountsActive = this.buildActiveView(accountsActiveRec);
+    const af = accountsForm || { advanceDate: '', expenseApproved: '' };
+    const approvedNum = Number(af.expenseApproved) || 0;
+    const advanceNum = accountsActiveRec ? (Number(accountsActiveRec.advanceAmount) || 0) : 0;
+
+    const adminUsers = [
+      { name: 'Anil Kumar', id: 'RES-0142', dept: 'Wind O&M', role: 'Employee', status: 'Active' },
+      { name: 'Priya Nair', id: 'RES-0187', dept: 'Wind O&M', role: 'Employee', status: 'Active' },
+      { name: 'Suresh Babu', id: 'RES-0203', dept: 'Site Services', role: 'Employee', status: 'Active' },
+      { name: 'Vikram Shah', id: 'RES-0050', dept: 'Wind O&M', role: 'Department Head', status: 'Active' },
+      { name: 'Meera Joshi', id: 'RES-0022', dept: 'Finance', role: 'Accounts', status: 'Active' },
+      { name: 'Rohit Sinha', id: 'RES-0005', dept: 'IT', role: 'Admin', status: 'Active' }
+    ];
+
+    return {
+      roleIsEmployee: role === 'employee', roleIsApprover: role === 'approver', roleIsAccounts: role === 'accounts', roleIsAdmin: role === 'admin',
+      onRoleEmployee: this.onRoleEmployee, onRoleApprover: this.onRoleApprover, onRoleAccounts: this.onRoleAccounts, onRoleAdmin: this.onRoleAdmin,
+
+      empIsDashboard: empScreen === 'dashboard', empIsInfo: empScreen === 'info', empIsExpenses: empScreen === 'expenses',
+      empIsAddExpense: empScreen === 'addExpense', empIsReview: empScreen === 'review', empIsStatus: empScreen === 'status',
+      startNewTES: this.startNewTES, myTES, activeRecord,
+      backToDashboard: this.backToDashboard, editInfoFromExpenses: this.editInfoFromExpenses, goInfoContinue: this.goInfoContinue,
+      onProjectCodeChange: this.onProjectCodeChange, onPurposeChange: this.onPurposeChange, onLocationChange: this.onLocationChange,
+      onStartDateChange: this.onStartDateChange, onEndDateChange: this.onEndDateChange, onAdvanceChange: this.onAdvanceChange,
+      addExpenseOpen: this.addExpenseOpen, addExpenseCancel: this.addExpenseCancel, saveExpense: this.saveExpense,
+      draftExpense: draftExpense || { category: 'Travel Fare', date: '', description: '', amount: '', billNo: '', remarks: '', receiptId: 'receipt-placeholder' },
+      draftExpenseInvalid: !draftExpense || !draftExpense.amount || Number(draftExpense.amount) <= 0,
+      onExpenseCategoryChange: this.onExpenseCategoryChange, onExpenseDateChange: this.onExpenseDateChange,
+      onExpenseDescriptionChange: this.onExpenseDescriptionChange, onExpenseAmountChange: this.onExpenseAmountChange,
+      onExpenseBillNoChange: this.onExpenseBillNoChange, onExpenseRemarksChange: this.onExpenseRemarksChange,
+      goReview: this.goReview, backToExpenses: this.backToExpenses, submitRecord: this.submitRecord,
+
+      approverIsQueue: approverScreen === 'queue', approverIsDetail: approverScreen === 'detail',
+      approverQueue, approverQueueEmpty: approverQueue.length === 0,
+      approverQueueCountLabel: approverQueue.length + (approverQueue.length === 1 ? ' submission' : ' submissions') + ' awaiting your review',
+      approverActive, backToApproverQueue: this.backToApproverQueue, openReject: this.openReject, approveActive: this.approveActive,
+      rejectOpen, rejectComment, onRejectCommentChange: this.onRejectCommentChange, closeReject: this.closeReject, confirmReject: this.confirmReject,
+
+      accountsIsQueue: accountsScreen === 'queue', accountsIsEntry: accountsScreen === 'entry',
+      accountsQueue, accountsQueueEmpty: accountsQueue.length === 0,
+      accountsQueueCountLabel: accountsQueue.length + (accountsQueue.length === 1 ? ' settlement' : ' settlements') + ' ready to process',
+      accountsActive, backToAccountsQueue: this.backToAccountsQueue,
+      accountsFormAdvanceDate: af.advanceDate, accountsFormExpenseApproved: af.expenseApproved,
+      onAccountsAdvanceDateChange: this.onAccountsAdvanceDateChange, onAccountsApprovedChange: this.onAccountsApprovedChange,
+      accountsLiveBalanceEmployee: this.fmtMoney(Math.max(approvedNum - advanceNum, 0)),
+      accountsLiveBalanceCompany: this.fmtMoney(Math.max(advanceNum - approvedNum, 0)),
+      finalizeAccounts: this.finalizeAccounts,
+
+      adminUsers,
+
+      toastVisible: !!toast, toastTitle: toast ? toast.title : '', toastMessage: toast ? toast.message : '', toastPath: toast ? toast.path : '',
+      closeToast: this.closeToast
+    };
+  }
+}
+
+</script>
+</body>
+</html>
