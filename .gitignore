@@ -1,0 +1,30 @@
+node_modules/
+dist/
+lib/
+.env
+!functions/.env
+.env.local
+*.local
+.DS_Store
+
+# Firebase
+.firebase/
+.emulator-data/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
+functions/.env.local
+functions/.env.*.local
+functions/.secret.local
+functions/service-account.json
+
+# Expo / React Native
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision

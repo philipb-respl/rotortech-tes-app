@@ -1,0 +1,27 @@
+{
+  "name": "rotortech-tes",
+  "private": true,
+  "description": "Rotortech Energy Solutions — Travel Expense Settlement app (web + mobile + Firebase backend)",
+  "workspaces": [
+    "apps/web",
+    "apps/mobile",
+    "functions",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:mobile": "npm run start --workspace=apps/mobile",
+    "build:shared": "npm run build --workspace=packages/shared",
+    "build:web": "npm run build:shared && npm run build --workspace=apps/web",
+    "build:functions": "npm run build:shared && npm run build --workspace=functions",
+    "emulators": "firebase emulators:start --import=./.emulator-data --export-on-exit=./.emulator-data",
+    "seed": "npm run build:shared && node functions/lib/scripts/seed.js"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.29.1",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
