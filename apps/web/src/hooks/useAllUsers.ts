@@ -8,8 +8,10 @@ export function useAllUsers(): UserProfile[] | null {
 
   useEffect(
     () =>
-      onSnapshot(query(collection(db, 'users'), orderBy('name')), (snap) =>
-        setUsers(snap.docs.map((d) => d.data() as UserProfile)),
+      onSnapshot(
+        query(collection(db, 'users'), orderBy('name')),
+        (snap) => setUsers(snap.docs.map((d) => d.data() as UserProfile)),
+        (err) => console.error('Failed to load users', err),
       ),
     [],
   );

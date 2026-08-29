@@ -27,7 +27,14 @@ export function Accounts() {
       setAdvanceDate('');
       setExpenseApproved(String(totalOf(active.expenses)));
     }
-  }, [active?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    // active.expenses arrives from a separate, slightly-later Firestore
+    // listener than the record itself (see useRecordWithExpenses) — refire
+    // when the expense count changes, not just when the record id does, or
+    // this pre-fill sticks at "0" (computed while expenses was still []).
+    // Safe to reset on that: a record in the Accounts queue is already past
+    // 'draft', so its expenses are immutable and this can't clobber a
+    // mid-edit user value.
+  }, [active?.id, active?.expenses.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (activeId && active) {
     const approvedNum = Number(expenseApproved) || 0;

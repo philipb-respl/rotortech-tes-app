@@ -30,10 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return;
     setProfileLoading(true);
-    return onSnapshot(doc(db, 'users', user.uid), (snap) => {
-      setProfile(snap.exists() ? (snap.data() as UserProfile) : null);
-      setProfileLoading(false);
-    });
+    return onSnapshot(
+      doc(db, 'users', user.uid),
+      (snap) => {
+        setProfile(snap.exists() ? (snap.data() as UserProfile) : null);
+        setProfileLoading(false);
+      },
+      (err) => {
+        console.error('Failed to load profile', err);
+        setProfileLoading(false);
+      },
+    );
   }, [user]);
 
   const value = useMemo(

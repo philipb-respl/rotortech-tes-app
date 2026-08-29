@@ -8,7 +8,11 @@ function useRecordQuery(stage: TesRecord['stage']) {
 
   useEffect(() => {
     const q = query(collection(db, 'records'), where('stage', '==', stage), orderBy('updatedAt', 'desc'));
-    return onSnapshot(q, (snap) => setRecords(snap.docs.map((d) => d.data() as TesRecord)));
+    return onSnapshot(
+      q,
+      (snap) => setRecords(snap.docs.map((d) => d.data() as TesRecord)),
+      (err) => console.error('Failed to load records for stage', stage, err),
+    );
   }, [stage]);
 
   return records;
