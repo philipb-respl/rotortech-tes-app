@@ -40,7 +40,7 @@ export function DashboardScreen({
     <View style={styles.flex}>
       <View style={styles.header}>
         <Text style={styles.h1}>My TES</Text>
-        <Button variant="primary" icon={<PlusIcon />} loading={creating} onPress={startNew}>
+        <Button variant="primary" icon={<PlusIcon />} loading={creating} onPress={startNew} accessibilityLabel="New TES">
           {''}
         </Button>
       </View>

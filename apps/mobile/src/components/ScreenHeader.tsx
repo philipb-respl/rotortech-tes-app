@@ -14,7 +14,13 @@ export function ScreenHeader({
   return (
     <View style={styles.row}>
       {onBack && (
-        <Pressable onPress={onBack} hitSlop={10} style={styles.backBtn}>
+        <Pressable
+          onPress={onBack}
+          hitSlop={10}
+          style={styles.backBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+        >
           <BackIcon />
         </Pressable>
       )}

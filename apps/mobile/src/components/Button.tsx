@@ -13,16 +13,32 @@ interface ButtonProps {
   block?: boolean;
   icon?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** For icon-only buttons: children stays '' (nothing visible next to the
+   *  icon) but screen readers still need a real name — pass it here. */
+  accessibilityLabel?: string;
 }
 
 /** Primary/secondary buttons wear the blueprint frame + corner marks, per
  *  the Industry design system; ghost (text) buttons don't. */
-export function Button({ children, onPress, variant = 'secondary', disabled, loading, block, icon, style }: ButtonProps) {
+export function Button({
+  children,
+  onPress,
+  variant = 'secondary',
+  disabled,
+  loading,
+  block,
+  icon,
+  style,
+  accessibilityLabel,
+}: ButtonProps) {
   const framed = variant === 'primary' || variant === 'secondary';
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || children}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       style={({ pressed }) => [
         styles.base,
         variant === 'primary' && styles.primary,

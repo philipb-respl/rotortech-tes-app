@@ -16,9 +16,13 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(workspaceRoot, 'node_modules'),
 ];
-// Force Metro to use the root copy of a package instead of resolving a
-// second nested copy — avoids duplicate-React-instance style bugs when a
-// dependency is hoisted to the workspace root.
-config.resolver.disableHierarchicalLookup = true;
+// Deliberately NOT setting resolver.disableHierarchicalLookup: it restricts
+// resolution to exactly nodeModulesPaths above, which breaks any package
+// npm nested inside another package's own node_modules to resolve a
+// version conflict (e.g. apps/mobile/node_modules/expo/node_modules/
+// expo-modules-core) — a real, working install layout, not a bug to route
+// around. Standard Node hierarchical lookup already finds those; the
+// nodeModulesPaths addition above only needs to extend that search up to
+// the workspace root for @rotortech-tes/shared, not replace it.
 
 module.exports = config;

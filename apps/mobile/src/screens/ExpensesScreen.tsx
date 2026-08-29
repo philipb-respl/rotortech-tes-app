@@ -87,7 +87,7 @@ function ExpenseRow({ expense, onRemove }: { expense: Expense; onRemove: () => v
         <Text style={styles.dim}>{expense.billNo || ''}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text style={styles.amount}>{fmtMoney(expense.amount)}</Text>
-          <Button variant="ghost" icon={<TrashIcon />} onPress={onRemove}>
+          <Button variant="ghost" icon={<TrashIcon />} onPress={onRemove} accessibilityLabel="Remove">
             {''}
           </Button>
         </View>

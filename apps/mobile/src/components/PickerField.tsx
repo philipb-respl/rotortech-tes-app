@@ -21,12 +21,17 @@ export function PickerField({
   return (
     <View style={{ gap: 5 }}>
       <Text style={styles.label}>{label}</Text>
-      <Pressable style={styles.trigger} onPress={() => setOpen(true)}>
+      <Pressable
+        style={styles.trigger}
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${value}`}
+      >
         <Text style={styles.value}>{value}</Text>
         <Text style={styles.chevron}>⌄</Text>
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+        <Pressable style={styles.backdrop} onPress={() => setOpen(false)} accessibilityLabel="Close">
           <View style={styles.sheet}>
             {options.map((opt) => (
               <Pressable
@@ -36,6 +41,8 @@ export function PickerField({
                   onChange(opt);
                   setOpen(false);
                 }}
+                accessibilityRole="menuitem"
+                accessibilityState={{ selected: opt === value }}
               >
                 <Text style={[styles.optionText, opt === value && { color: colors.accent700 }]}>{opt}</Text>
               </Pressable>
