@@ -1,25 +1,59 @@
-# CODING AGENTS: READ THIS FIRST
+# Rotortech TES
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+Travel Expense Settlement for Rotortech Energy Solutions Pvt. Ltd. — a
+mobile app for employees to submit expenses with receipt photos, and a web
+console for Department Heads (approve/reject), Accounts (settle and
+finalize) and Admin (roles, categories, Drive status), backed by Firebase
+and Google Drive.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+Implements the design in `project/Rotortech TES App.dc.html`, the Claude
+Design prototype this was built from (kept, along with its design
+transcript in `chats/`, for reference — see `project/README.md`).
 
-## What you should do — IMPORTANT
+## Structure
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+```
+apps/web/       React + Vite web console — Dept Head, Accounts, Admin
+apps/mobile/    Expo React Native app — Employee flow
+functions/      Firebase Cloud Functions — pipeline logic, PDF + Drive upload
+packages/shared/  Types, formatting and business logic shared by all three
+firestore.rules, storage.rules, firebase.json   Firebase project config
+docs/SETUP.md   Full setup, local emulator walkthrough, and deployment guide
+```
 
-**Read `project/Rotortech TES App.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## Quick start
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+```bash
+npm install
+npm run build:shared
+npm run emulators     # Firebase Emulator Suite (Auth, Firestore, Functions, Storage)
+npm run seed           # in another terminal — demo users + TES records
+npm run dev:web         # web console
+npm run dev:mobile      # Expo — mobile app
+```
 
-## About the design files
+See **[docs/SETUP.md](docs/SETUP.md)** for the full walkthrough, including
+demo login credentials, wiring up a real Firebase project, and connecting
+Google Drive.
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+## How it works
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
-
-## Bundle contents
-
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Rotortech travel expense app` project files (HTML prototypes, assets, components)
+- **Employee** (mobile): dashboard of their TES records → trip info →
+  expenses (with camera/gallery receipt capture) → review → submit. A
+  status tracker shows Submitted → Received → Approved → Accounts Entry,
+  and the settlement once Accounts finalizes it.
+- **Department Head** (web): a queue of submitted TES, each reviewable
+  with full expense detail, approve or reject-with-comment (sends it back
+  to the employee as an editable draft).
+- **Accounts** (web): a queue of approved TES ready to settle — enters the
+  approved expense amount and advance date, sees the live balance-due
+  calculation, and finalizes.
+- **Admin** (web): Drive connection status, expense categories, and the
+  user directory (role + active/inactive, editable inline).
+- Submitting and finalizing both generate a PDF summary and save it to
+  `Rotortech Energy Solutions/Travel Expense Settlements/{year}/{employee}/{tesNo}.pdf`
+  on a shared Google Drive folder.
+- All pipeline transitions (submit/approve/reject/finalize) run through
+  Cloud Functions callables, not direct client writes — Firestore security
+  rules block clients from touching those fields, so the stage machine
+  can't be bypassed by a compromised or buggy client.

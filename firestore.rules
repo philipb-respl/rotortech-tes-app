@@ -1,0 +1,125 @@
+rules_version = '2';
+
+// Rotortech TES — Firestore security rules.
+//
+// Data model:
+//   users/{uid}                     profile + role, keyed by Firebase Auth uid
+//   records/{recordId}              one Travel Expense Settlement (TES)
+//   records/{recordId}/expenses/{expenseId}   line items on that TES
+//
+// Records are created by the createDraftTes callable, and stage
+// transitions (draft -> submitted -> approved -> accounts_entry) are only
+// ever written by the other Cloud Functions callables (submitRecord,
+// approveRecord, rejectRecord, finalizeAccounts) — all of them use the
+// Admin SDK and therefore bypass these rules entirely. Clients can create
+// expense line items directly (see the expenses subcollection rules
+// below) but never create or transition a record's stage themselves.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function myRole() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? myProfile().role
+        : null;
+    }
+
+    function isActive() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && myProfile().active == true;
+    }
+
+    function isAdmin()    { return isActive() && myRole() == 'admin'; }
+    function isApprover() { return isActive() && myRole() == 'approver'; }
+    function isAccounts() { return isActive() && myRole() == 'accounts'; }
+    function isEmployee() { return isActive() && myRole() == 'employee'; }
+
+    // Roles that oversee the pipeline can see every non-draft record.
+    function isReviewer() { return isAdmin() || isApprover() || isAccounts(); }
+
+    // --- users ---------------------------------------------------------
+    match /users/{uid} {
+      // Any signed-in, active account can read profiles (needed to show
+      // "Employee" / "Approved by" names across dashboards in a small org).
+      // A brand-new account (not yet marked active) may still read its own
+      // doc so the app can show a "pending activation" screen.
+      allow get: if isSignedIn() && (uid == request.auth.uid || isActive());
+      allow list: if isActive();
+
+      // Profiles are provisioned by the onUserCreate Auth trigger (Admin
+      // SDK, bypasses these rules) the moment someone signs up — clients
+      // never create a users/ doc themselves.
+      allow create: if false;
+
+      // Only admins can change roles/active state; a user may edit their
+      // own non-privileged display fields.
+      allow update: if isAdmin()
+        || (isSignedIn() && uid == request.auth.uid
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.active == resource.data.active);
+
+      allow delete: if isAdmin();
+    }
+
+    // --- records ---------------------------------------------------------
+    function recordUnchangedFields() {
+      // Fields an employee is never allowed to touch directly — these only
+      // ever move via a Cloud Functions callable.
+      return ['stage', 'tesNo', 'employeeUid', 'employeeName', 'employeeId',
+        'submittedDate', 'receivedDate', 'approvedDate', 'accountsEntryDate',
+        'advanceDate', 'expenseApproved', 'balanceEmployee', 'balanceCompany',
+        'rejected', 'approverComment', 'driveFileId', 'driveFileUrl', 'createdAt'];
+    }
+
+    match /records/{recordId} {
+      allow get: if isSignedIn() && (
+        resource.data.employeeUid == request.auth.uid ||
+        (isReviewer() && resource.data.stage != 'draft')
+      );
+      allow list: if isSignedIn();
+
+      // Created only by the createDraftTes callable (Admin SDK, bypasses
+      // these rules) so TES numbering can be allocated atomically —
+      // clients never create a records/ doc directly.
+      allow create: if false;
+
+      // Employee may keep editing their own record only while it is still
+      // a draft, and may never touch the pipeline-controlled fields above.
+      allow update: if isEmployee()
+        && resource.data.employeeUid == request.auth.uid
+        && resource.data.stage == 'draft'
+        && request.resource.data.stage == 'draft'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['projectCode', 'purpose', 'location', 'startDate',
+               'endDate', 'advanceAmount', 'updatedAt']);
+
+      allow delete: if isEmployee() && resource.data.employeeUid == request.auth.uid
+        && resource.data.stage == 'draft';
+
+      match /expenses/{expenseId} {
+        function parentRecord() {
+          return get(/databases/$(database)/documents/records/$(recordId)).data;
+        }
+        function ownsDraftParent() {
+          return isEmployee() && parentRecord().employeeUid == request.auth.uid
+            && parentRecord().stage == 'draft';
+        }
+
+        allow get: if isSignedIn() && (
+          parentRecord().employeeUid == request.auth.uid ||
+          (isReviewer() && parentRecord().stage != 'draft')
+        );
+        allow list: if isSignedIn();
+        allow create, update, delete: if ownsDraftParent();
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Rotortech TES",
+    "slug": "rotortech-tes",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "rotortech-tes",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "in.rotortech.tes",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Rotortech TES uses the camera to photograph expense receipts.",
+        "NSPhotoLibraryUsageDescription": "Rotortech TES needs photo library access to attach a receipt photo to an expense."
+      }
+    },
+    "android": {
+      "package": "in.rotortech.tes",
+      "adaptiveIcon": {
+        "backgroundColor": "#f2f2f3",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Rotortech TES needs photo library access to attach a receipt photo to an expense.",
+          "cameraPermission": "Rotortech TES uses the camera to photograph expense receipts."
+        }
+      ]
+    ]
+  }
+}

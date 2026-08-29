@@ -1,0 +1,53 @@
+rules_version = '2';
+
+// Rotortech TES — Cloud Storage rules.
+//
+//   receipts/{recordId}/{expenseId}/{fileName}   photo per expense line
+//
+// TES summary PDFs never touch Firebase Storage — submitRecord/
+// finalizeAccounts generate them and upload straight to the shared Google
+// Drive folder (see functions/src/drive.ts), so there's no PDF path here.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myRole() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isActiveRole(role) {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.active == true
+        && role == myRole();
+    }
+
+    function isReviewer() {
+      return isActiveRole('admin') || isActiveRole('approver') || isActiveRole('accounts');
+    }
+
+    function recordDoc(recordId) {
+      return firestore.get(/databases/(default)/documents/records/$(recordId)).data;
+    }
+
+    match /receipts/{recordId}/{expenseId}/{fileName} {
+      allow read: if isSignedIn() && (
+        recordDoc(recordId).employeeUid == request.auth.uid || isReviewer()
+      );
+      // Only the owning employee, and only while the TES is still a draft,
+      // may attach or replace a receipt photo. 10 MB cap, images only.
+      allow write: if isActiveRole('employee')
+        && recordDoc(recordId).employeeUid == request.auth.uid
+        && recordDoc(recordId).stage == 'draft'
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
