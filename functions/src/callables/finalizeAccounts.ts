@@ -4,7 +4,7 @@ import { drivePdfPath, settlement, todayIso } from '@rotortech-tes/shared';
 import { db } from '../admin';
 import { requireRole } from '../auth-helpers';
 import { generateTesPdf } from '../pdf';
-import { saveTesPdf, driveServiceAccountKey, driveRootFolderId } from '../drive';
+import { saveTesPdf, driveServiceAccountKey, isDriveConfigured } from '../drive';
 
 interface Data {
   recordId: string;
@@ -29,7 +29,7 @@ export const finalizeAccounts = onCall<Data>({ secrets: [driveServiceAccountKey]
   if (record.stage !== 'approved') {
     throw new HttpsError('failed-precondition', 'Only a Dept-Head-approved TES can be finalized.');
   }
-  if (!driveRootFolderId.value()) {
+  if (!isDriveConfigured()) {
     throw new HttpsError('failed-precondition', 'Google Drive is not configured yet — ask an admin to complete setup (see docs/SETUP.md).');
   }
 

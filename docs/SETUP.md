@@ -100,17 +100,20 @@ with the service account added as a member.
    firebase functions:secrets:set DRIVE_SERVICE_ACCOUNT_KEY
    # paste the full JSON key contents when prompted
    ```
-6. Set the folder id as a Functions param — either export it before deploying, or add it to `functions/.env.<your-project-id>` (see `functions/.env` for the format):
-   ```
-   DRIVE_ROOT_FOLDER_ID=<the folder id from step 4>
-   ```
+6. `DRIVE_ROOT_FOLDER_ID` is already set in `functions/.env` (committed —
+   it's an identifier, not a credential). Only change it if you're filing
+   PDFs somewhere other than the current folder; a per-project override
+   goes in `functions/.env.<your-project-id>`.
 7. Redeploy functions (§6). Submit/Finalize now really save to Drive.
+
+Until **both** the folder id and the service account key are present,
+Submit and Finalize fail up front with "Google Drive is not configured yet"
+rather than a cryptic error mid-upload.
 
 For local emulator testing with real Drive credentials, copy
 `functions/.secret.local.example` to `functions/.secret.local` and fill in
 the same JSON key (this file is git-ignored — never commit real
-credentials), and set `DRIVE_ROOT_FOLDER_ID` in `functions/.env.local`
-(also git-ignored).
+credentials). The folder id is already picked up from `functions/.env`.
 
 ## 6. Deploy
 

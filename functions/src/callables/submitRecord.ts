@@ -4,7 +4,7 @@ import { drivePdfPath, todayIso } from '@rotortech-tes/shared';
 import { db } from '../admin';
 import { requireRole } from '../auth-helpers';
 import { generateTesPdf } from '../pdf';
-import { saveTesPdf, driveServiceAccountKey, driveRootFolderId } from '../drive';
+import { saveTesPdf, driveServiceAccountKey, isDriveConfigured } from '../drive';
 
 interface Data {
   recordId: string;
@@ -32,7 +32,7 @@ export const submitRecord = onCall<Data>({ secrets: [driveServiceAccountKey] }, 
   if (expenses.length === 0) {
     throw new HttpsError('failed-precondition', 'Add at least one expense before submitting.');
   }
-  if (!driveRootFolderId.value()) {
+  if (!isDriveConfigured()) {
     throw new HttpsError('failed-precondition', 'Google Drive is not configured yet — ask an admin to complete setup (see docs/SETUP.md).');
   }
 

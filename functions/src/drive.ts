@@ -9,11 +9,19 @@ import { DRIVE_SETTLEMENTS_FOLDER, drivePdfPath } from '@rotortech-tes/shared';
  *  Secret Manager secret, not a plain env var. */
 export const driveServiceAccountKey = defineSecret('DRIVE_SERVICE_ACCOUNT_KEY');
 
-/** Folder ID of "Rotortech Energy Solutions" root folder on the Shared
- *  Drive that TES PDFs are filed under. Empty default so the emulator and
- *  a fresh deploy boot without an interactive prompt; saveTesPdf below
- *  raises a clear error if a real save is attempted before this is set. */
+/** ID of the Drive folder TES PDFs are filed under, as
+ *  `<root>/TES Settlements/{year}/{employee}/`. Empty default so the
+ *  emulator and a fresh deploy boot without an interactive prompt. */
 export const driveRootFolderId = defineString('DRIVE_ROOT_FOLDER_ID', { default: '' });
+
+/** Whether Drive is fully wired up — BOTH the folder id and the service
+ *  account key. Callers check this before attempting a save so a partial
+ *  setup gets a clear "not configured yet" message; without it, a missing
+ *  key only surfaces as `JSON.parse('')` blowing up inside getDrive() as
+ *  an opaque INTERNAL error. */
+export function isDriveConfigured(): boolean {
+  return Boolean(driveRootFolderId.value()) && Boolean(driveServiceAccountKey.value());
+}
 
 let driveClient: ReturnType<typeof google.drive> | null = null;
 
