@@ -19,6 +19,10 @@ functions/.env.*.local
 functions/.secret.local
 functions/service-account.json
 
+# Supabase CLI local state (migrations themselves ARE committed)
+supabase/.branches/
+supabase/.temp/
+
 # Expo / React Native
 apps/mobile/.expo/
 apps/mobile/dist/
