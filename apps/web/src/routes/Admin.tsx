@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
-import { EXPENSE_CATEGORIES } from '@rotortech-tes/shared';
+import { DRIVE_SETTLEMENTS_FOLDER, EXPENSE_CATEGORIES } from '@rotortech-tes/shared';
 import type { Role } from '@rotortech-tes/shared';
 import { Nav } from '../components/Nav';
 import { Card, CardKicker, CardTitle } from '../components/Card';
@@ -62,10 +62,10 @@ export function Admin() {
               Connected via service account
             </CardTitle>
             <p className="card-body">
-              Rotortech Energy Solutions — Shared Drive
+              Saved under the configured Drive root folder
               <br />
               <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 11 }}>
-                /Travel Expense Settlements/{'{year}'}/{'{employee}'}/
+                &lt;root&gt;/{DRIVE_SETTLEMENTS_FOLDER}/{'{year}'}/{'{employee}'}/
               </span>
             </p>
             <p className="text-muted" style={{ fontSize: 12 }}>

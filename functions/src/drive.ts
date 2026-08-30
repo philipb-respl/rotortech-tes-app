@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import { defineSecret, defineString } from 'firebase-functions/params';
+import { DRIVE_SETTLEMENTS_FOLDER, drivePdfPath } from '@rotortech-tes/shared';
 
 /** JSON key of a Google Cloud service account with access to the shared
  *  Drive folder (see docs/SETUP.md — the folder must live on a Shared
@@ -73,8 +74,8 @@ export interface SavedTesPdf {
 }
 
 /** Uploads (or, on resubmission/finalize, overwrites) `{tesNo}.pdf` under
- *  `<root>/Travel Expense Settlements/{year}/{employeeName}/`, matching the
- *  path shown in the app's "Saved to Google Drive" confirmation. */
+ *  `<root>/TES Settlements/{year}/{employeeName}/`, matching the path shown
+ *  in the app's "Saved to Google Drive" confirmation. */
 export async function saveTesPdf(opts: {
   year: number;
   employeeName: string;
@@ -87,7 +88,7 @@ export async function saveTesPdf(opts: {
     throw new Error('DRIVE_ROOT_FOLDER_ID is not configured — see docs/SETUP.md.');
   }
 
-  const settlementsFolder = await ensureFolder(root, 'Travel Expense Settlements');
+  const settlementsFolder = await ensureFolder(root, DRIVE_SETTLEMENTS_FOLDER);
   const yearFolder = await ensureFolder(settlementsFolder, String(opts.year));
   const employeeFolder = await ensureFolder(yearFolder, opts.employeeName);
 
@@ -119,7 +120,10 @@ export async function saveTesPdf(opts: {
   return {
     fileId,
     webViewLink: meta.data.webViewLink ?? `https://drive.google.com/file/d/${fileId}/view`,
-    folderPath: `Rotortech Energy Solutions/Travel Expense Settlements/${opts.year}/${opts.employeeName}/${fileName}`,
+    // Built from the shared helper rather than a second copy of the path
+    // literal — the duplicate is what let this drift out of sync with the
+    // folder actually created above.
+    folderPath: drivePdfPath(opts.year, opts.employeeName, opts.tesNo),
   };
 }
 

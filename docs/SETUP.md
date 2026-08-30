@@ -82,15 +82,19 @@ real Drive saves.
 ## 5. Wire up Google Drive
 
 Submitting and finalizing a TES saves a PDF summary to
-`Rotortech Energy Solutions/Travel Expense Settlements/{year}/{employee}/{tesNo}.pdf`
-on a **Shared Drive** (not personal My Drive — a bare service account has
-no storage quota of its own, so it must be a Shared Drive with the service
-account added as a member).
+`<root>/TES Settlements/{year}/{employee}/{tesNo}.pdf`, where `<root>` is
+whatever folder `DRIVE_ROOT_FOLDER_ID` points at (step 4 below). The
+`TES Settlements` folder and the year/employee folders under it are created
+automatically on first save if they don't exist.
+
+`<root>` should live on a **Shared Drive**, not personal My Drive — a bare
+service account has no storage quota of its own, so it needs a Shared Drive
+with the service account added as a member.
 
 1. In Google Cloud Console (same project as Firebase, or a linked one), enable the **Google Drive API**.
 2. Create a **service account** (IAM & Admin → Service Accounts), and create a JSON key for it.
-3. In Google Drive, create (or pick) a **Shared Drive**, e.g. "Rotortech Energy Solutions". Add the service account's email (`...@...iam.gserviceaccount.com`) to it as a **Content Manager**.
-4. Note the Shared Drive's root folder ID (from its URL: `drive.google.com/drive/folders/<THIS_PART>`).
+3. In Google Drive, create (or pick) a **Shared Drive** and, inside it, the folder you want TES PDFs filed under. Add the service account's email (`...@...iam.gserviceaccount.com`) as a **Content Manager**.
+4. Note that folder's ID (from its URL: `drive.google.com/drive/folders/<THIS_PART>`).
 5. Store the service account key as a Cloud Functions secret:
    ```bash
    firebase functions:secrets:set DRIVE_SERVICE_ACCOUNT_KEY

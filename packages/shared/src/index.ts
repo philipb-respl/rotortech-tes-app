@@ -9,7 +9,7 @@ export { EXPENSE_CATEGORIES } from './types';
 export { fmtMoney, fmtDate, fmtPeriod, todayIso, totalOf, STAGE_LABEL, STAGE_TAG_CLASS } from './format';
 
 export type { CategoryTotal, StatusStep } from './business';
-export { stageFromDates, categoryTotals, statusSteps, settlement, formatTesNo, drivePdfPath } from './business';
+export { stageFromDates, categoryTotals, statusSteps, settlement, formatTesNo, drivePdfPath, DRIVE_SETTLEMENTS_FOLDER } from './business';
 
 export type { SeedUser, SeedExpense, SeedRecord } from './seed-data';
 export { SEED_USERS, SEED_RECORDS, SEED_NEXT_TES_SEQUENCE, SEED_TES_YEAR } from './seed-data';

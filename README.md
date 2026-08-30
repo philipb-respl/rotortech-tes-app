@@ -51,8 +51,9 @@ Google Drive.
 - **Admin** (web): Drive connection status, expense categories, and the
   user directory (role + active/inactive, editable inline).
 - Submitting and finalizing both generate a PDF summary and save it to
-  `Rotortech Energy Solutions/Travel Expense Settlements/{year}/{employee}/{tesNo}.pdf`
-  on a shared Google Drive folder.
+  `<root>/TES Settlements/{year}/{employee}/{tesNo}.pdf` on a shared Google
+  Drive folder, where `<root>` is the folder `DRIVE_ROOT_FOLDER_ID` points
+  at (see [docs/SETUP.md](docs/SETUP.md) §5).
 - All pipeline transitions (submit/approve/reject/finalize) run through
   Cloud Functions callables, not direct client writes — Firestore security
   rules block clients from touching those fields, so the stage machine

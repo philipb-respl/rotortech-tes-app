@@ -60,9 +60,17 @@ export function formatTesNo(year: number, sequence: number): string {
   return `TES-${year}-${String(sequence).padStart(4, '0')}`;
 }
 
-/** The Drive path a submitted/finalized TES's PDF summary is saved to,
- *  matching the path shown in the prototype's confirmation toast. */
+/** Name of the folder — created directly under the configured Drive root
+ *  (the DRIVE_ROOT_FOLDER_ID Functions param) — that TES PDFs are filed
+ *  under. Single source of truth: functions/src/drive.ts creates the
+ *  folder by this name, and the UI shows the path built from it. */
+export const DRIVE_SETTLEMENTS_FOLDER = 'TES Settlements';
+
+/** Where a submitted/finalized TES's PDF summary is saved, as a path
+ *  *relative to the configured Drive root folder*. The root's own name is
+ *  deliberately not baked in — it's whatever folder DRIVE_ROOT_FOLDER_ID
+ *  points at, which varies per deployment. */
 export function drivePdfPath(year: number, employeeName: string, tesNo: string): string {
-  return `Rotortech Energy Solutions/Travel Expense Settlements/${year}/${employeeName}/${tesNo}.pdf`;
+  return `${DRIVE_SETTLEMENTS_FOLDER}/${year}/${employeeName}/${tesNo}.pdf`;
 }
 
