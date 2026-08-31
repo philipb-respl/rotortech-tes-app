@@ -133,7 +133,7 @@ export function Accounts() {
               }
             }}
           >
-            Finalize & Save to Drive
+            Finalize Settlement
           </Button>
         </div>
       </div>

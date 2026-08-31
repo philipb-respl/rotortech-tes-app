@@ -59,8 +59,8 @@ export function ReviewScreen({ record, onBack, onSubmitted }: { record: TesRecor
         </View>
 
         <Text style={styles.note}>
-          Submitting saves a PDF summary to the shared Rotortech Google Drive folder and sends this TES to your
-          Department Head for approval.
+          Submitting sends this TES to your Department Head for approval. You won't be able to edit it while it's
+          under review.
         </Text>
         {!!error && <Text style={styles.error}>{error}</Text>}
         <Button variant="primary" block loading={submitting} onPress={submit}>

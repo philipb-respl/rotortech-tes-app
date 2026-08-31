@@ -51,21 +51,30 @@ export function Admin() {
           <Card style={{ padding: 16 }}>
             <CardKicker>Google Drive</CardKicker>
             <CardTitle style={{ fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Hollow rather than filled: this is a status indicator, and
+                  nothing is uploading to Drive yet. */}
               <span
-                style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-accent)', display: 'inline-block' }}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  border: '1px solid currentColor',
+                  opacity: 0.4,
+                  display: 'inline-block',
+                }}
               />
-              Connected via service account
+              Not connected yet
             </CardTitle>
             <p className="card-body">
-              Saved under the configured Drive root folder
+              Once connected, PDF summaries will be filed under
               <br />
               <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 11 }}>
                 &lt;root&gt;/{DRIVE_SETTLEMENTS_FOLDER}/{'{year}'}/{'{employee}'}/
               </span>
             </p>
             <p className="text-muted" style={{ fontSize: 12 }}>
-              Configured via the <code>DRIVE_SERVICE_ACCOUNT_KEY</code> secret and{' '}
-              <code>DRIVE_ROOT_FOLDER_ID</code> — see docs/SETUP.md.
+              Submitting and finalizing work as normal — they just don't produce a PDF yet. The upload still needs
+              porting to a Supabase Edge Function; see docs/SETUP.md §5.
             </p>
           </Card>
           <Card style={{ padding: 16 }}>
