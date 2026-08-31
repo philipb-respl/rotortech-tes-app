@@ -1,5 +1,4 @@
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 
@@ -12,7 +11,7 @@ export function EmployeeNotice() {
           Submitting expenses happens in the Rotortech TES mobile app, where you can attach receipt photos on the go.
           This web console is for Department Heads, Accounts and Admin.
         </p>
-        <Button variant="ghost" onClick={() => signOut(auth)}>
+        <Button variant="ghost" onClick={() => void supabase.auth.signOut()}>
           Sign out
         </Button>
       </Card>

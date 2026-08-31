@@ -1,7 +1,7 @@
 {
   "name": "rotortech-tes",
   "private": true,
-  "description": "Rotortech Energy Solutions — Travel Expense Settlement app (web + mobile + Firebase backend)",
+  "description": "Rotortech Energy Solutions — Travel Expense Settlement app (web + mobile + Supabase backend)",
   "workspaces": [
     "apps/web",
     "apps/mobile",

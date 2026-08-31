@@ -20,6 +20,7 @@ export function AddExpenseScreen({ recordId, onCancel, onSaved }: { recordId: st
   const [remarks, setRemarks] = useState('');
   const [receiptUri, setReceiptUri] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const invalid = !amount || Number(amount) <= 0 || !isValidIsoDate(date);
 
@@ -51,6 +52,7 @@ export function AddExpenseScreen({ recordId, onCancel, onSaved }: { recordId: st
 
   async function save() {
     setSaving(true);
+    setError('');
     try {
       await saveNewExpense(
         recordId,
@@ -58,6 +60,11 @@ export function AddExpenseScreen({ recordId, onCancel, onSaved }: { recordId: st
         receiptUri,
       );
       onSaved();
+    } catch (err) {
+      // Covers a rejected write and a failed receipt upload alike — in
+      // either case nothing was left behind, so the form stays as it is
+      // and the employee can retry.
+      setError(err instanceof Error ? err.message : 'Could not save this expense.');
     } finally {
       setSaving(false);
     }
@@ -99,6 +106,7 @@ export function AddExpenseScreen({ recordId, onCancel, onSaved }: { recordId: st
         <Field label="Remarks">
           <Input value={remarks} onChangeText={setRemarks} placeholder="Optional" multiline numberOfLines={2} />
         </Field>
+        {!!error && <Text style={styles.error}>{error}</Text>}
         <Button variant="primary" block disabled={invalid} loading={saving} onPress={save}>
           Save Expense
         </Button>
@@ -122,4 +130,5 @@ const styles = StyleSheet.create({
   receiptImage: { width: '100%', height: '100%' },
   receiptPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   receiptPlaceholderText: { fontFamily: fonts.body, fontSize: 12, color: textMuted70 },
+  error: { fontFamily: fonts.body, fontSize: 13, color: colors.accent700 },
 });

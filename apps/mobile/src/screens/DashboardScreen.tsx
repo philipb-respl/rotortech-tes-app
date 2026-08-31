@@ -6,7 +6,7 @@ import { Tag } from '../components/Tag';
 import { Button } from '../components/Button';
 import { PlusIcon } from '../components/Icons';
 import { useMyRecords } from '../hooks/useMyRecords';
-import { callCreateDraftTes } from '../lib/callables';
+import { createDraftTes } from '../lib/api';
 import { colors, fonts, textMuted } from '../theme';
 
 const TAG_VARIANT: Record<Stage, 'neutral' | 'outline' | 'accent'> = {
@@ -29,8 +29,8 @@ export function DashboardScreen({
   async function startNew() {
     setCreating(true);
     try {
-      const res = await callCreateDraftTes();
-      onCreated(res.data.recordId);
+      const record = await createDraftTes();
+      onCreated(record.id);
     } finally {
       setCreating(false);
     }

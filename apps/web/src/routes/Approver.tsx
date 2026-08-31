@@ -9,7 +9,7 @@ import { Dialog } from '../components/Dialog';
 import { useApproverQueue } from '../hooks/useRecords';
 import { useRecordWithExpenses } from '../hooks/useRecordWithExpenses';
 import { useAuth } from '../context/AuthContext';
-import { callApproveRecord, callRejectRecord } from '../lib/callables';
+import { approveRecord, rejectRecord } from '../lib/api';
 
 export function Approver() {
   const { profile } = useAuth();
@@ -99,7 +99,7 @@ export function Approver() {
                 setBusy(true);
                 setError('');
                 try {
-                  await callApproveRecord(active.id);
+                  await approveRecord(active.id);
                   setActiveId(null);
                 } catch (err) {
                   setError(err instanceof Error ? err.message : 'Could not approve this TES.');
@@ -128,7 +128,7 @@ export function Approver() {
                     setBusy(true);
                     setError('');
                     try {
-                      await callRejectRecord(active.id, rejectComment);
+                      await rejectRecord(active.id, rejectComment);
                       setRejectOpen(false);
                       setActiveId(null);
                     } catch (err) {

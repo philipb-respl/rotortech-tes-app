@@ -4,7 +4,7 @@ import { fmtDate, fmtMoney, fmtPeriod, totalOf, type TesRecordWithExpenses } fro
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { callSubmitRecord } from '../lib/callables';
+import { submitRecord } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import { colors, fonts, textMuted } from '../theme';
 
@@ -17,8 +17,8 @@ export function ReviewScreen({ record, onBack, onSubmitted }: { record: TesRecor
     setSubmitting(true);
     setError('');
     try {
-      const res = await callSubmitRecord(record.id);
-      showToast(res.data.toast);
+      const { toast } = await submitRecord(record.id);
+      showToast(toast);
       onSubmitted();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not submit this TES.');

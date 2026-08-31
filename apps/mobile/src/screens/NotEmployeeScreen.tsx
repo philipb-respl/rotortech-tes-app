@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { colors, fonts, textMuted } from '../theme';
@@ -14,7 +13,7 @@ export function NotEmployeeScreen({ role }: { role: string }) {
           Your account's role ({role}) reviews and processes TES submissions on the web console, not this app. Sign
           in there instead.
         </Text>
-        <Button variant="ghost" onPress={() => signOut(auth)}>
+        <Button variant="ghost" onPress={() => void supabase.auth.signOut()}>
           Sign out
         </Button>
       </Card>

@@ -74,3 +74,15 @@ export function drivePdfPath(year: number, employeeName: string, tesNo: string):
   return `${DRIVE_SETTLEMENTS_FOLDER}/${year}/${employeeName}/${tesNo}.pdf`;
 }
 
+
+/** Name of the private Supabase Storage bucket holding receipt photos. */
+export const RECEIPTS_BUCKET = 'receipts';
+
+/** Object key for an expense's receipt photo within RECEIPTS_BUCKET. The
+ *  first path segment is the record id, and the storage policies in
+ *  `20260830170500_tes_storage.sql` read it back with
+ *  `(storage.foldername(name))[1]` to find the owning TES — so this layout
+ *  is load-bearing, not just tidy. */
+export function receiptObjectPath(recordId: string, expenseId: string): string {
+  return `${recordId}/${expenseId}/photo.jpg`;
+}

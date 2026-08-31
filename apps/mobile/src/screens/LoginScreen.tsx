@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 import { Card } from '../components/Card';
 import { Field, Input } from '../components/Field';
 import { Button } from '../components/Button';
@@ -20,10 +19,17 @@ export function LoginScreen() {
     setBusy(true);
     try {
       if (mode === 'signin') {
-        await signInWithEmailAndPassword(auth, email.trim(), password);
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (signInError) throw signInError;
       } else {
-        const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-        if (name.trim()) await updateProfile(cred.user, { displayName: name.trim() });
+        // `data.name` lands in raw_user_meta_data, which the
+        // on_auth_user_created trigger reads to seed profiles.name.
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { name: name.trim() } },
+        });
+        if (signUpError) throw signUpError;
       }
     } catch (err) {
       setError(err instanceof Error ? friendlyAuthError(err.message) : 'Something went wrong.');
@@ -86,12 +92,18 @@ export function LoginScreen() {
   );
 }
 
+/** GoTrue's messages are mostly readable already; rewrite the few that
+ *  leak implementation detail and pass the rest through. */
 function friendlyAuthError(message: string): string {
-  if (message.includes('auth/invalid-credential') || message.includes('auth/wrong-password')) return 'Incorrect email or password.';
-  if (message.includes('auth/email-already-in-use')) return 'That email already has an account — sign in instead.';
-  if (message.includes('auth/weak-password')) return 'Password must be at least 6 characters.';
-  if (message.includes('auth/invalid-email')) return 'That email address looks invalid.';
-  return 'Something went wrong. Please try again.';
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) return 'Incorrect email or password.';
+  if (m.includes('already registered') || m.includes('already been registered')) {
+    return 'That email already has an account — sign in instead.';
+  }
+  if (m.includes('password should be at least')) return 'Password must be at least 6 characters.';
+  if (m.includes('unable to validate email') || m.includes('invalid email')) return 'That email address looks invalid.';
+  if (m.includes('email not confirmed')) return 'Check your inbox and confirm your email address first.';
+  return message || 'Something went wrong. Please try again.';
 }
 
 const styles = StyleSheet.create({

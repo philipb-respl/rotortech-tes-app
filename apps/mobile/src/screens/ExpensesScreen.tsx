@@ -56,7 +56,12 @@ export function ExpensesScreen({
         keyExtractor={(e) => e.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.empty}>No expenses added yet.</Text>}
-        renderItem={({ item }) => <ExpenseRow expense={item} onRemove={() => removeExpense(record.id, item.id)} />}
+        renderItem={({ item }) => (
+          <ExpenseRow
+            expense={item}
+            onRemove={() => removeExpense(item.id).catch((err) => console.error('Failed to remove expense', err))}
+          />
+        )}
       />
 
       <View style={styles.footer}>

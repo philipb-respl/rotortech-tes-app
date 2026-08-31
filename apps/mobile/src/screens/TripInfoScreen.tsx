@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { TesRecord } from '@rotortech-tes/shared';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Field, Input } from '../components/Field';
 import { DateField, isValidIsoDate } from '../components/DateField';
 import { Button } from '../components/Button';
-import { updateDraftField } from '../lib/records';
+import { updateDraftFields } from '../lib/records';
+import { colors, fonts } from '../theme';
 
 export function TripInfoScreen({ record, onBack, onContinue }: { record: TesRecord; onBack: () => void; onContinue: () => void }) {
   const [projectCode, setProjectCode] = useState(record.projectCode);
@@ -14,19 +15,32 @@ export function TripInfoScreen({ record, onBack, onContinue }: { record: TesReco
   const [startDate, setStartDate] = useState(record.startDate);
   const [endDate, setEndDate] = useState(record.endDate);
   const [advanceAmount, setAdvanceAmount] = useState(record.advanceAmount ? String(record.advanceAmount) : '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const datesOk = (!startDate || isValidIsoDate(startDate)) && (!endDate || isValidIsoDate(endDate));
 
   async function saveAndContinue() {
-    await Promise.all([
-      updateDraftField(record.id, 'projectCode', projectCode),
-      updateDraftField(record.id, 'purpose', purpose),
-      updateDraftField(record.id, 'location', location),
-      updateDraftField(record.id, 'startDate', startDate),
-      updateDraftField(record.id, 'endDate', endDate),
-      updateDraftField(record.id, 'advanceAmount', Number(advanceAmount) || 0),
-    ]);
-    onContinue();
+    setSaving(true);
+    setError('');
+    try {
+      // One statement rather than a field-per-request fan-out: the whole
+      // form either lands or it doesn't, so a failure halfway can't leave
+      // the draft half-edited.
+      await updateDraftFields(record.id, {
+        projectCode,
+        purpose,
+        location,
+        startDate,
+        endDate,
+        advanceAmount: Number(advanceAmount) || 0,
+      });
+      onContinue();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save these trip details.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -59,7 +73,8 @@ export function TripInfoScreen({ record, onBack, onContinue }: { record: TesReco
         <Field label="Advance Amount (₹)">
           <Input value={advanceAmount} onChangeText={setAdvanceAmount} placeholder="0" keyboardType="numeric" />
         </Field>
-        <Button variant="primary" block disabled={!datesOk} onPress={saveAndContinue}>
+        {!!error && <Text style={styles.error}>{error}</Text>}
+        <Button variant="primary" block disabled={!datesOk} loading={saving} onPress={saveAndContinue}>
           Continue
         </Button>
       </ScrollView>
@@ -71,4 +86,5 @@ const styles = StyleSheet.create({
   body: { paddingHorizontal: 20, paddingBottom: 100, gap: 14 },
   row: { flexDirection: 'row', gap: 12 },
   half: { flex: 1 },
+  error: { fontFamily: fonts.body, fontSize: 13, color: colors.accent700 },
 });

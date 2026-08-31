@@ -1,127 +1,133 @@
 # Setup — Rotortech TES
 
-Everything below gets you from a clone of this repo to a running app: local
-development against the Firebase Emulator Suite first, then a real Firebase
-project wired to Google Drive for production.
+Everything below gets you from a clone of this repo to a running app.
+
+**The two client apps now talk to Supabase.** `apps/web` and `apps/mobile`
+use `@supabase/supabase-js` against the Postgres schema, row-level security
+and workflow functions in [`supabase/`](../supabase/README.md); there is no
+Firebase code left in either app.
+
+The `functions/` directory (Firebase Cloud Functions) is still in the tree,
+but **nothing calls it any more**. It is kept as the source for the PDF
+generation and Google Drive upload, which still need porting to Supabase
+Edge Functions — see §5 and `supabase/README.md`.
 
 ## 1. Prerequisites
 
 - Node.js 20+ and npm 10+
-- The [Firebase CLI](https://firebase.google.com/docs/cli): `npm install -g firebase-tools` (also available via `npx firebase` without a global install)
-- Java 11+ (the Firestore/Storage emulators run on the JVM)
+- A [Supabase](https://supabase.com) project (free tier is fine)
+- The [Supabase CLI](https://supabase.com/docs/guides/cli) for applying migrations: `npm install -g supabase`
 - For the mobile app: [Expo Go](https://expo.dev/go) on your phone, or an iOS/Android simulator
-- A Google Cloud / Firebase project once you're ready to go beyond the emulator
+- Docker, only if you want to run Supabase locally (`supabase start`) rather than against a hosted project
 
 ## 2. Install and build
 
 ```bash
 npm install                 # installs all workspaces (apps/web, apps/mobile, functions, packages/shared)
-npm run build:shared        # compile packages/shared — the others import its build output
+npm run build:shared        # compile packages/shared — the apps import its build output
 ```
 
-## 3. Run everything locally against the Emulator Suite
+## 3. Set up the database
 
-The emulators (Auth, Firestore, Storage, Functions) run entirely on your
-machine — no real Firebase project or Google Drive credentials needed to
-develop and click through every screen.
+The schema lives in `supabase/migrations/`, applied in filename order.
+`supabase/README.md` documents each migration and the current state of the
+hosted project — **read it before pushing**, because some migrations were
+originally applied out-of-band and the remote history needs repairing
+first.
 
 ```bash
-npm run emulators           # starts auth+firestore+functions+storage, UI at http://127.0.0.1:4000
-npm run seed                # in another terminal — seeds demo users + TES records (see below)
+supabase link --project-ref <your-project-ref>
+supabase migration list      # compare remote versions against local files
+supabase db push             # apply anything missing
+```
+
+Or run everything locally instead:
+
+```bash
+supabase start               # local Postgres + Auth + Storage + Studio
+supabase db reset            # applies every migration from scratch
+```
+
+Then enable **Email** sign-in in the dashboard (Authentication → Providers).
+For a low-friction internal rollout, turn *off* "Confirm email" — otherwise
+new accounts must click a link before they can sign in.
+
+## 4. Point the apps at it
+
+Both apps need the project URL and publishable key, from the Supabase
+dashboard → Project Settings → API:
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+cp apps/mobile/.env.example apps/mobile/.env.local
+# fill in SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in both
+```
+
+The publishable (anon) key is safe in a client bundle — it identifies the
+project and grants nothing on its own; every read and write is decided by
+row-level security against the signed-in user's JWT. The **secret**
+(`service_role`) key bypasses RLS entirely and must never appear in either
+app.
+
+```bash
 npm run dev:web              # web console (Dept Head / Accounts / Admin) at http://localhost:5173
 npm run dev:mobile           # `expo start` — scan the QR with Expo Go, or press i/a for a simulator
 ```
 
-`npm run seed` creates the same cast as the original Claude Design
-prototype, all with password `rotortech-dev`:
+Unlike the Firebase emulator setup this replaces, a physical device needs
+no LAN-IP juggling: it reaches the hosted project directly. If you're
+running `supabase start` locally instead, point
+`EXPO_PUBLIC_SUPABASE_URL` at your machine's LAN IP on port 54321 —
+`localhost` won't resolve from a device or the Android emulator.
 
-| Email | Role | Name |
-| --- | --- | --- |
-| anil.kumar@rotortech.in | Employee | Anil Kumar |
-| priya.nair@rotortech.in | Employee | Priya Nair |
-| suresh.babu@rotortech.in | Employee | Suresh Babu |
-| vikram.shah@rotortech.in | Department Head | Vikram Shah |
-| meera.joshi@rotortech.in | Accounts | Meera Joshi |
-| rohit.sinha@rotortech.in | Admin | Rohit Sinha |
+### First admin
 
-Sign in to the **mobile app** as one of the employees, and to the **web
-console** as the Dept Head / Accounts / Admin accounts.
+Sign up through the web console with your own email. Every new account
+starts inactive with the `employee` role (the `on_auth_user_created`
+trigger), so you'll land on a "waiting for activation" screen. Click
+**"I'm setting this up — make me the first admin"**, which calls
+`bootstrap_first_admin()` — it promotes you and then permanently locks
+itself out, because it refuses to run once any admin exists. From then on,
+use the Admin tab to activate and role-assign everyone else.
 
-Both apps need to be told to talk to the emulators instead of a real
-project:
+There is no Supabase seed script yet; `functions/src/scripts/seed.ts` seeds
+Firebase only.
 
-```bash
-cp apps/web/.env.example apps/web/.env.local        # leave VITE_USE_EMULATORS=true
-cp apps/mobile/.env.example apps/mobile/.env.local  # leave EXPO_PUBLIC_USE_EMULATORS=true
-```
+## 5. Google Drive — not yet wired on Supabase
 
-If you're running the mobile app on a physical device or the Android
-emulator, `localhost` won't reach your dev machine — set
-`EXPO_PUBLIC_EMULATOR_HOST` in `apps/mobile/.env.local` to your machine's
-LAN IP (or `10.0.2.2` specifically for the Android emulator).
+Submitting and finalizing a TES is *meant* to save a PDF summary to
+`<root>/TES Settlements/{year}/{employee}/{tesNo}.pdf`. On Firebase that
+ran inside the `submitRecord` / `finalizeAccounts` callables.
 
-Because Google Drive isn't configured in this local setup, **Submit** and
-**Finalize & Save to Drive** will fail with a clear "Google Drive is not
-configured yet" error — everything else (drafts, approvals, rejections,
-the Admin console) works fully offline-of-Drive. Section 5 below wires up
-real Drive saves.
+On Supabase it is **not connected yet**. `submit_record()` and
+`finalize_accounts()` accept `drive_file_id` / `drive_file_url` parameters,
+but nothing passes them, so:
 
-## 4. Create a real Firebase project
+- the workflow still works end to end — drafts, submission, approval,
+  rejection, settlement;
+- no PDF is generated and nothing is written to Drive;
+- the confirmation dialog deliberately shows the Drive path and "Open in
+  Google Drive" link *only* when the record actually carries them, so it
+  does not claim a file exists that doesn't. Once an Edge Function fills
+  those fields in, the link appears on its own.
 
-1. [console.firebase.google.com](https://console.firebase.google.com) → Add project.
-2. Enable **Authentication** → Sign-in method → Email/Password.
-3. Enable **Firestore Database** (production mode; the checked-in `firestore.rules` locks it down).
-4. Enable **Storage** (for receipt photos; `storage.rules` locks it down).
-5. Add a **Web app** (for `apps/web`) and copy its config into `apps/web/.env.local` (see `apps/web/.env.example`) — the same values also go into `apps/mobile/.env.local` (see `apps/mobile/.env.example`). Set `VITE_USE_EMULATORS=false` / `EXPO_PUBLIC_USE_EMULATORS=false`.
-6. `firebase login`, then update `.firebaserc`'s `"default"` project id (or run `firebase use --add`).
-7. Deploy the security rules and indexes: `firebase deploy --only firestore:rules,firestore:indexes,storage`.
-8. Deploy the Cloud Functions: see §6.
-9. Once functions are live, sign up through the web console or mobile app with your own email — you'll land on a "waiting for activation" screen. Tap **"I'm setting this up — make me the first admin"**; this only works once (see `bootstrapFirstAdmin` in `functions/src/callables`). From then on, use the Admin tab in the web console to activate and role-assign everyone else.
-10. Optionally run `npm run seed` against the real project instead of the emulator (omit `FIRESTORE_EMULATOR_HOST`/`FIREBASE_AUTH_EMULATOR_HOST`, set `GCLOUD_PROJECT=<your-project-id>`, and make sure you're authenticated via `gcloud auth application-default login` or `GOOGLE_APPLICATION_CREDENTIALS`) — useful for a demo/staging environment, skip it for real production data.
+Closing the gap means porting `functions/src/pdf.ts` and
+`functions/src/drive.ts` to a Deno Edge Function that generates the PDF,
+uploads it, and then calls the RPC with the resulting ids. The service
+account setup below is unchanged and still applies — only the runtime that
+uses it moves.
 
-## 5. Wire up Google Drive
-
-Submitting and finalizing a TES saves a PDF summary to
-`<root>/TES Settlements/{year}/{employee}/{tesNo}.pdf`, where `<root>` is
-whatever folder `DRIVE_ROOT_FOLDER_ID` points at (step 4 below). The
-`TES Settlements` folder and the year/employee folders under it are created
-automatically on first save if they don't exist.
-
-`<root>` should live on a **Shared Drive**, not personal My Drive — a bare
-service account has no storage quota of its own, so it needs a Shared Drive
-with the service account added as a member.
-
-1. In Google Cloud Console (same project as Firebase, or a linked one), enable the **Google Drive API**.
-2. Create a **service account** (IAM & Admin → Service Accounts), and create a JSON key for it.
-3. In Google Drive, create (or pick) a **Shared Drive** and, inside it, the folder you want TES PDFs filed under. Add the service account's email (`...@...iam.gserviceaccount.com`) as a **Content Manager**.
-4. Note that folder's ID (from its URL: `drive.google.com/drive/folders/<THIS_PART>`).
-5. Store the service account key as a Cloud Functions secret:
-   ```bash
-   firebase functions:secrets:set DRIVE_SERVICE_ACCOUNT_KEY
-   # paste the full JSON key contents when prompted
-   ```
-6. `DRIVE_ROOT_FOLDER_ID` is already set in `functions/.env` (committed —
-   it's an identifier, not a credential). Only change it if you're filing
-   PDFs somewhere other than the current folder; a per-project override
-   goes in `functions/.env.<your-project-id>`.
-7. Redeploy functions (§6). Submit/Finalize now really save to Drive.
-
-Until **both** the folder id and the service account key are present,
-Submit and Finalize fail up front with "Google Drive is not configured yet"
-rather than a cryptic error mid-upload.
-
-For local emulator testing with real Drive credentials, copy
-`functions/.secret.local.example` to `functions/.secret.local` and fill in
-the same JSON key (this file is git-ignored — never commit real
-credentials). The folder id is already picked up from `functions/.env`.
+1. In Google Cloud Console, enable the **Google Drive API**.
+2. Create a **service account** (IAM & Admin → Service Accounts) and a JSON key for it.
+3. In Google Drive, create (or pick) a **Shared Drive** and, inside it, the folder TES PDFs are filed under. Add the service account's email (`...@...iam.gserviceaccount.com`) as a **Content Manager**. A bare service account has no storage quota of its own, so this must be a Shared Drive, not personal My Drive.
+4. Note that folder's ID (from its URL: `drive.google.com/drive/folders/<THIS_PART>`). It is already set as `DRIVE_ROOT_FOLDER_ID` in `functions/.env` — an identifier, not a credential.
+5. Store the JSON key as a secret in whichever runtime ends up doing the upload (`supabase secrets set DRIVE_SERVICE_ACCOUNT_KEY` for Edge Functions). Set it from your own shell; don't paste the key into a chat, a ticket, or the repo.
 
 ## 6. Deploy
 
 ```bash
-npm run build:web                                       # apps/web/dist
-firebase deploy --only hosting                            # serves apps/web/dist
-firebase deploy --only functions                          # builds + deploys functions (see firebase.json predeploy hook)
-firebase deploy --only firestore:rules,firestore:indexes,storage
+npm run build:web            # apps/web/dist — serve it from any static host
+supabase db push             # apply migrations to the hosted project
 ```
 
 For the mobile app, build with [EAS Build](https://docs.expo.dev/build/introduction/)
@@ -130,6 +136,7 @@ Expo Go / a dev client during development.
 
 ## Notes on scope
 
-- **Roles**: Employee (mobile app), Department Head / Accounts / Admin (web console). A user's role lives in `users/{uid}.role` in Firestore and is admin-managed — there's no self-service role picker beyond the one-time `bootstrapFirstAdmin` bootstrap.
-- **Numbering**: TES numbers (`TES-{year}-{seq}`) are allocated atomically by the `createDraftTes` Cloud Function, continuing from wherever the seed data (or your last real TES) left off.
-- **Security**: all pipeline transitions (submit/approve/reject/finalize) run through Cloud Functions callables using the Admin SDK — Firestore rules (`firestore.rules`) block clients from writing those fields directly, so the enforcement holds even if a client is compromised or buggy.
+- **Roles**: Employee (mobile app), Department Head / Accounts / Admin (web console). A user's role lives in `public.profiles.role` and is admin-managed — there's no self-service role picker beyond the one-time `bootstrap_first_admin()`.
+- **Numbering**: TES numbers (`TES-{year}-{seq}`) are allocated by `create_draft_tes()`, which takes a row lock on `tes_counter` so two employees hitting "New TES" at once can't collide.
+- **Security**: every pipeline transition runs through a `SECURITY DEFINER` Postgres function. `records` has no INSERT policy and `UPDATE` is granted on six trip-info columns only, so a client physically cannot create a record or move one between stages — the enforcement holds even if a client is compromised or buggy. See `supabase/README.md` for the three overlapping layers.
+- **Live updates**: the queues and detail screens subscribe to Realtime and re-read through PostgREST on any change, rather than patching state from the event payload — Realtime applies the same RLS, but DELETE payloads carry only a primary key and a row leaving a filtered set produces no event.

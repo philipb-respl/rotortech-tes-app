@@ -8,10 +8,10 @@ Project: **TES-respl's Project** — ref `hhhgrptpmoskjdoiziry`
 
 ## ⚠️ Current state — partially applied
 
-Three migrations are **live on the remote project**; three are **written here
-but not yet applied**, because the Supabase connection dropped mid-build.
-The unapplied three have not been executed anywhere, so treat them as
-reviewed-but-unverified SQL.
+Three migrations are **live on the remote project**; the rest are **written
+here but not yet applied**, because the Supabase connection dropped
+mid-build and has not come back. The unapplied ones have not been executed
+anywhere, so treat them as reviewed-but-unverified SQL.
 
 | Migration | Applied remotely? |
 | --- | --- |
@@ -21,10 +21,20 @@ reviewed-but-unverified SQL.
 | `20260830170300_tes_workflow_functions.sql` | ❌ **not applied** |
 | `20260830170400_tes_column_grants.sql` | ❌ **not applied** |
 | `20260830170500_tes_storage.sql` | ❌ **not applied** |
+| `20260830170600_tes_realtime.sql` | ❌ **not applied** |
 
 Until the workflow functions are applied, nothing can create or advance a
 record: `records` has no INSERT policy by design, so `create_draft_tes()` is
-the only way in.
+the only way in. Until `…170500` runs there is no `receipts` bucket, so
+receipt photos fail to upload; until `…170600` runs the apps still work but
+fall back to whatever they fetched on mount, since no Realtime events are
+published.
+
+**Nothing here has been exercised against a signed-in user yet.** The
+Firebase backend it replaces was verified end to end against the emulator
+(role enforcement, stage transitions, sequential numbering, no partial
+writes); the equivalent pass over these policies and functions still needs
+doing once the migrations are in.
 
 ## Applying the rest
 
@@ -102,7 +112,26 @@ lookup.
   `functions/src/drive.ts` on Firebase) still need porting to Deno Edge
   Functions that wrap these RPCs.
 - **Seed data.** No Supabase equivalent of `functions/src/scripts/seed.ts`.
-- **The client apps still talk to Firebase.** `apps/web` and `apps/mobile`
-  use `firebase/auth` + `firestore` throughout; none of this schema is
-  reachable from them until their data layer is rewritten on `supabase-js`.
-  That is a substantial separate piece of work, not a config change.
+
+## The client apps
+
+Both `apps/web` and `apps/mobile` now talk to this schema through
+`@supabase/supabase-js`. There is no Firebase code left in either; the
+`functions/` directory survives only as the source for the Drive/PDF port
+above.
+
+Two conventions worth knowing before editing the data layer:
+
+**Columns are snake_case, the domain types are camelCase.** Rather than
+rename either side, `packages/shared/src/rows.ts` translates between them
+(`toTesRecord`, `toExpense`, `toUserProfile`, and the patch builders going
+the other way). The data layer is the only code that knows both spellings —
+every screen and component works in the camelCase types it always did.
+
+**Live views re-read rather than patch.** The hooks subscribe to Realtime
+and, on any event, re-run their PostgREST query instead of applying the
+payload. Realtime enforces the same RLS, but DELETE payloads carry only the
+primary key and skip it, and a row that moves *out* of a filtered set
+(a TES going submitted → approved, leaving the Dept Head queue) produces no
+event for the set it left — so a payload-patching cache would strand it on
+screen.

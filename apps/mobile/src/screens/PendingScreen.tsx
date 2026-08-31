@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { signOut } from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
-import { auth, functions } from '../firebase';
+import { supabase } from '../supabase';
+import { bootstrapFirstAdmin } from '../lib/api';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { colors, fonts, textMuted } from '../theme';
@@ -15,7 +14,7 @@ export function PendingScreen() {
     setBusy(true);
     setError('');
     try {
-      await httpsCallable(functions, 'bootstrapFirstAdmin')();
+      await bootstrapFirstAdmin();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
@@ -35,7 +34,7 @@ export function PendingScreen() {
         <Button variant="secondary" loading={busy} onPress={becomeFirstAdmin}>
           I'm setting this up — make me the first admin
         </Button>
-        <Button variant="ghost" onPress={() => signOut(auth)}>
+        <Button variant="ghost" onPress={() => void supabase.auth.signOut()}>
           Sign out
         </Button>
       </Card>

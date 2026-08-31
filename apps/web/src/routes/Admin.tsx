@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
 import { DRIVE_SETTLEMENTS_FOLDER, EXPENSE_CATEGORIES } from '@rotortech-tes/shared';
-import type { Role } from '@rotortech-tes/shared';
+import type { ProfilePatch, Role } from '@rotortech-tes/shared';
 import { Nav } from '../components/Nav';
 import { Card, CardKicker, CardTitle } from '../components/Card';
 import { Tag } from '../components/Tag';
@@ -9,7 +8,7 @@ import { Input, Select } from '../components/Field';
 import { Button } from '../components/Button';
 import { useAllUsers } from '../hooks/useAllUsers';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../firebase';
+import { updateProfile } from '../lib/api';
 
 const ROLES: Role[] = ['employee', 'approver', 'accounts', 'admin'];
 const ROLE_LABEL: Record<Role, string> = {
@@ -23,28 +22,24 @@ export function Admin() {
   const { profile } = useAuth();
   const users = useAllUsers();
   const [busyUid, setBusyUid] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
-  async function setRole(uid: string, role: Role) {
+  async function save(uid: string, patch: ProfilePatch) {
     setBusyUid(uid);
+    setError('');
     try {
-      await updateDoc(doc(db, 'users', uid), { role });
+      await updateProfile(uid, patch);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save that change.');
     } finally {
       setBusyUid(null);
     }
   }
 
-  async function toggleActive(uid: string, active: boolean) {
-    setBusyUid(uid);
-    try {
-      await updateDoc(doc(db, 'users', uid), { active: !active });
-    } finally {
-      setBusyUid(null);
-    }
-  }
-
-  async function saveField(uid: string, field: 'employeeId' | 'department', value: string) {
-    await updateDoc(doc(db, 'users', uid), { [field]: value.trim() });
-  }
+  const setRole = (uid: string, role: Role) => save(uid, { role });
+  const toggleActive = (uid: string, active: boolean) => save(uid, { active: !active });
+  const saveField = (uid: string, field: 'employeeId' | 'department', value: string) =>
+    save(uid, field === 'employeeId' ? { employeeId: value.trim() } : { department: value.trim() });
 
   return (
     <div className="page">
@@ -89,6 +84,8 @@ export function Admin() {
         <p className="text-muted" style={{ fontSize: 13, marginBottom: 20 }}>
           Approval chain: Employee → Department Head → Accounts → Settled
         </p>
+
+        {error && <p className="auth-error">{error}</p>}
 
         <div style={{ overflowX: 'auto' }}>
           <table className="table">

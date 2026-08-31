@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { callBootstrapFirstAdmin } from '../lib/callables';
+import { bootstrapFirstAdmin } from '../lib/api';
 
 export function Pending() {
   const [busy, setBusy] = useState(false);
@@ -13,9 +12,9 @@ export function Pending() {
     setBusy(true);
     setError('');
     try {
-      await callBootstrapFirstAdmin();
-      // The users/{uid} onSnapshot listener in AuthContext will pick up
-      // the change and re-route automatically.
+      await bootstrapFirstAdmin();
+      // AuthContext watches this profile row over Realtime and will pick up
+      // the promotion, re-routing automatically.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
@@ -35,7 +34,7 @@ export function Pending() {
         <Button variant="secondary" onClick={becomeFirstAdmin} disabled={busy}>
           {busy ? 'Checking…' : "I'm setting this up — make me the first admin"}
         </Button>
-        <Button variant="ghost" onClick={() => signOut(auth)}>
+        <Button variant="ghost" onClick={() => void supabase.auth.signOut()}>
           Sign out
         </Button>
       </Card>

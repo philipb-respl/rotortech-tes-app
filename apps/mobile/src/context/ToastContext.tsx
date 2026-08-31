@@ -3,7 +3,14 @@ import { Platform, Text } from 'react-native';
 import { Dialog } from '../components/Dialog';
 import { Button } from '../components/Button';
 import { colors, fonts } from '../theme';
-import type { ToastPayload } from '../lib/callables';
+
+export interface ToastPayload {
+  title: string;
+  message: string;
+  /** Drive path of the saved PDF, shown only once one actually exists. */
+  path?: string;
+  driveUrl?: string;
+}
 
 interface ToastContextValue {
   showToast: (t: ToastPayload) => void;
